@@ -10,7 +10,7 @@ import jwt
 from jwt import PyJWKClient
 from oci_jwt_client import OCIJWTClient
 from utils import get_console_logger
-from config_private import SECRET_OCID
+from config import SECRET_OCID
 
 logger = get_console_logger()
 
@@ -89,14 +89,18 @@ class OCIJWTServer:
 #
 # Main
 #
-BASE_URL = "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
+from config import IAM_BASE_URL, ISSUER, AUDIENCE, SECRET_OCID
+
+BASE_URL = IAM_BASE_URL
 # this is the scope for which the token is issued
 SCOPE = "urn:opc:idm:__myscopes__"
 # these are used in verification
 # these is depending from the tenant
+# Note: AUDIENCE and ISSUER are now imported from config_private
 
-AUDIENCE = "urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"
-ISSUER = "https://identity.oraclecloud.com/"
+# Note: AUDIENCE is a list in config_private, but OCIJWTServer expects a string
+# Convert to string if it's a list
+audience_str = AUDIENCE[0] if isinstance(AUDIENCE, list) else AUDIENCE
 
 client = OCIJWTClient(BASE_URL, SCOPE, SECRET_OCID)
 print("")
@@ -105,7 +109,7 @@ token, token_type, expires_in = client.get_token()
 print(token)
 print("Token type:", token_type)
 
-server = OCIJWTServer(BASE_URL, AUDIENCE, ISSUER)
+server = OCIJWTServer(BASE_URL, audience_str, ISSUER)
 claims = server.decode_unverified(token)
 print("")
 print("Unverified claims:", claims)

@@ -35,7 +35,6 @@ from .agent_state import State
 from .infrastructure.oci_models import get_embedding_model, get_oracle_vs
 from .utils.utils import get_console_logger, docs_serializable
 import config as app_config
-from config_private import CONNECT_ARGS
 
 logger = get_console_logger()
 
@@ -54,7 +53,7 @@ class SemanticSearch(Runnable):
         """
         get a connection to the DB
         """
-        return oracledb.connect(**CONNECT_ARGS)
+        return oracledb.connect(**app_config.CONNECT_ARGS)
 
     @zipkin_span(service_name=app_config.AGENT_NAME, span_name="similarity_search")
     def invoke(self, input: State, config=None, **kwargs):

@@ -28,7 +28,7 @@ from datetime import datetime
 import oracledb
 
 from .utils import get_console_logger
-from config_private import CONNECT_ARGS
+import config
 
 logger = get_console_logger()
 
@@ -45,7 +45,7 @@ class RagFeedback:
 
     def get_connection(self):
         """Establish the Oracle DB connection."""
-        return oracledb.connect(**CONNECT_ARGS)
+        return oracledb.connect(**config.CONNECT_ARGS)
 
     def table_exists(self, table_name: str) -> bool:
         """

@@ -39,7 +39,6 @@ from decimal import Decimal
 from datetime import datetime
 
 # Import configs from the custom-rag-agent
-from config_private import CONNECT_ARGS
 import config
 
 # OCI Configuration
@@ -57,7 +56,7 @@ TABLE_NAME = "DOCUMENT_CHUNKS_VS"
 
 def create_db_connection():
     """Create database connection using config_private settings"""
-    connection = oracledb.connect(**CONNECT_ARGS)
+    connection = oracledb.connect(**config.CONNECT_ARGS)
     return connection
 
 def clean_text(text):

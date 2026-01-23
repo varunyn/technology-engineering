@@ -26,7 +26,6 @@ from src.rag_agent.infrastructure.oci_jwt_client import OCIJWTClient
 from src.rag_agent.infrastructure.oci_models import get_llm
 from src.rag_agent.utils.utils import get_console_logger
 import config
-from config_private import SECRET_OCID
 from mcp_servers.mcp_servers_config import MCP_SERVERS_CONFIG
 
 logger = get_console_logger()
@@ -52,7 +51,7 @@ def default_jwt_supplier() -> str:
     """
     if config.ENABLE_JWT_TOKEN:
         # Always return a FRESH token; do not include "Bearer " (FastMCP adds it)
-        token, _, _ = OCIJWTClient(config.IAM_BASE_URL, SCOPE, SECRET_OCID).get_token()
+        token, _, _ = OCIJWTClient(config.IAM_BASE_URL, SCOPE, config.SECRET_OCID).get_token()
     else:
         # JWT security disabled
         token = None

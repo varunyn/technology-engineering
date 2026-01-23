@@ -8,8 +8,8 @@ Python Version: 3.11
 Description:
     This module provides all configurations for the RAG agent.
     
-    IMPORTANT: This file contains sensitive information and is in .gitignore.
-    Copy config_template.py to config.py and fill in your actual values.
+    IMPORTANT: Copy this file to config.py and fill in your actual values.
+    config.py is in .gitignore and will NOT be committed to git.
 
 Usage:
     Import this module into other scripts to use its functions.
@@ -38,7 +38,7 @@ OCI_PROFILE = "CHICAGO"
 # OCI GENERAL CONFIGURATION
 # ============================================================================
 REGION = "us-chicago-1"
-COMPARTMENT_ID = "ocid1.compartment.oc1..aaaaaaaabo7ccbheelx3ck4xvva3iue5p7se7b7kwadofeagkajposhh2mzq"
+COMPARTMENT_ID = "ocid1.compartment.oc1..your-compartment-ocid"
 SERVICE_ENDPOINT = f"https://inference.generativeai.{REGION}.oci.oraclecloud.com"
 
 # ============================================================================
@@ -73,16 +73,16 @@ else:
 # ============================================================================
 EMBED_MODEL_TYPE = "OCI"  # Options: "OCI" or "NVIDIA"
 EMBED_MODEL_ID = "cohere.embed-multilingual-v3.0"
-NVIDIA_EMBED_MODEL_URL = "http://130.61.225.137:8000/v1/embeddings"
+NVIDIA_EMBED_MODEL_URL = "http://your-nvidia-endpoint:8000/v1/embeddings"
 
 # ============================================================================
 # ORACLE VECTOR STORE (DATABASE) CONFIGURATION
 # ============================================================================
-VECTOR_DB_USER = "Varun"
-VECTOR_DB_PWD = "c1TStoFbvscch4"
-VECTOR_WALLET_PWD = "g3##3Hy#cK"
-VECTOR_DSN = "skwn23ai_medium"
-VECTOR_WALLET_DIR = "/Users/varuyada/Documents/AI Tools/openwebui/Wallet_skwn23ai"
+VECTOR_DB_USER = "YOUR_DB_USERNAME"
+VECTOR_DB_PWD = "YOUR_DB_PASSWORD"
+VECTOR_WALLET_PWD = "YOUR_WALLET_PASSWORD"
+VECTOR_DSN = "YOUR_DSN_NAME"
+VECTOR_WALLET_DIR = "/path/to/your/wallet/directory"
 
 CONNECT_ARGS = {
     "user": VECTOR_DB_USER,
@@ -130,13 +130,13 @@ PORT = 9000
 ENABLE_JWT_TOKEN = False
 
 # Simple JWT (HS256) - Used when ENABLE_JWT_TOKEN = True and NOT using OCI IAM
-JWT_SECRET = "oracle-ai"
+JWT_SECRET = "your-secret-key-here"
 JWT_ALGORITHM = "HS256"  # For production, use RS256 with a key-pair
 
 # OCI IAM JWT Configuration - ONLY needed if ENABLE_JWT_TOKEN = True and using OCI IAM
-IAM_BASE_URL = "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
+IAM_BASE_URL = "https://idcs-xxxxxxxxxxxxxxxxxxxxxxxxxxxx.identity.oraclecloud.com"
 ISSUER = "https://identity.oraclecloud.com/"
-AUDIENCE = ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
+AUDIENCE = ["urn:opc:lbaas:logicalguid=your-guid-here"]
 OCI_CLIENT_ID = ""  # Client ID from OCI IAM confidential application
 SECRET_OCID = ""    # OCID of secret in OCI Vault containing the client secret
 
@@ -146,5 +146,5 @@ SECRET_OCID = ""    # OCID of secret in OCI Vault containing the client secret
 ENABLE_TRACING = False
 AGENT_NAME = "OCI_CUSTOM_RAG_AGENT"
 APM_CONTENT_TYPE = "application/json"
-APM_BASE_URL = "https://aaaadec2jjn3maaaaaaaaach4e.apm-agt.eu-frankfurt-1.oci.oraclecloud.com/20200101"
+APM_BASE_URL = "https://your-apm-endpoint.apm-agt.region.oci.oraclecloud.com/20200101"
 APM_PUBLIC_KEY = ""

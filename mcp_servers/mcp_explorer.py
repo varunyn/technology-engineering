@@ -10,8 +10,7 @@ from fastmcp import Client
 
 from oci_jwt_client import OCIJWTClient
 from utils import get_console_logger
-from config import DEBUG, ENABLE_JWT_TOKEN, IAM_BASE_URL
-from config_private import SECRET_OCID
+from config import DEBUG, ENABLE_JWT_TOKEN, IAM_BASE_URL, SECRET_OCID
 from mcp_servers.mcp_servers_config import MCP_SERVERS_CONFIG
 
 # the scope for the JWT token

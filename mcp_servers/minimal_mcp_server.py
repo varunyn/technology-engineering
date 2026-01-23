@@ -13,7 +13,7 @@ from fastmcp import FastMCP
 from fastmcp.server.auth import BearerAuthProvider
 
 from config import (
-    # first four needed only to manage JWT
+    # needed only to manage JWT
     ENABLE_JWT_TOKEN,
     IAM_BASE_URL,
     ISSUER,

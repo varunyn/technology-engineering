@@ -6,8 +6,7 @@ import asyncio
 from fastmcp import Client
 from oci_jwt_client import OCIJWTClient
 from utils import get_console_logger, print_mcp_available_tools
-from config import IAM_BASE_URL, ENABLE_JWT_TOKEN, PORT
-from config_private import SECRET_OCID
+from config import ENABLE_JWT_TOKEN, PORT, SECRET_OCID, IAM_BASE_URL
 
 logger = get_console_logger()
 

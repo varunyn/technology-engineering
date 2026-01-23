@@ -14,7 +14,7 @@ import oracledb
 import numpy as np
 from rank_bm25 import BM25Okapi
 from src.rag_agent.utils.utils import get_console_logger
-from config_private import CONNECT_ARGS
+import config
 
 logger = get_console_logger()
 
@@ -44,7 +44,7 @@ class BM25OracleSearch:
         Establishes a connection to the Oracle database.
         """
         try:
-            connection = oracledb.connect(**CONNECT_ARGS)
+            connection = oracledb.connect(**config.CONNECT_ARGS)
             return connection
         except oracledb.DatabaseError as e:
             logger.info("Database connection error: %s", e)

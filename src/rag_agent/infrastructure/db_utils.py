@@ -26,14 +26,14 @@ Warnings:
 
 import oracledb
 
-from config_private import CONNECT_ARGS
+import config
 
 
 def get_connection():
     """
     get a connection to the DB
     """
-    return oracledb.connect(**CONNECT_ARGS)
+    return oracledb.connect(**config.CONNECT_ARGS)
 
 
 def list_collections():

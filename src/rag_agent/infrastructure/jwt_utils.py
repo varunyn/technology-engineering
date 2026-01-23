@@ -3,7 +3,7 @@ Utility to encode, decode JWT tokens.
 
 With these functions you can create a valid JWT token and decode (and check it is valid).
 
-You need a shared JWT_SECRET (see config_private.py)
+You need a shared JWT_SECRET (see config.py)
 
 It is used in the implementation of the MCP server.
 
@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 import jwt
 from ..utils.utils import get_console_logger
 import config
-from config_private import JWT_ALGORITHM, JWT_SECRET
 
 logger = get_console_logger()
 
@@ -30,7 +29,7 @@ def create_jwt_token(user="test-user"):
         "exp": datetime.utcnow() + timedelta(hours=1),
     }
     # show how to create a valid JWT token
-    _token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    _token = jwt.encode(payload, config.JWT_SECRET, algorithm=config.JWT_ALGORITHM)
 
     return _token
 
@@ -41,7 +40,7 @@ def verify_jwt_token(token: str) -> None:
     Raise an exception if the JWT token is invalid.
     """
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, config.JWT_SECRET, algorithms=[config.JWT_ALGORITHM])
 
         # here we should check the content of payload
         if config.DEBUG:

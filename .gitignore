@@ -1,5 +1,5 @@
-# Private configuration files
-config_private.py
+# Configuration file (contains sensitive information)
+config.py
 
 # Python
 __pycache__/

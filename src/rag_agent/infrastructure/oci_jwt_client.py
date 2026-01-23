@@ -15,7 +15,7 @@ import config
 
 # this is the cliend_id defined in the config of the
 # confidential application in OCI IAM
-from config_private import OCI_CLIENT_ID
+import config
 
 logger = get_console_logger()
 
@@ -50,7 +50,7 @@ class OCIJWTClient:
         self.scope = scope
         # this is the endpoint to request a JWT token
         self.token_url = f"{self.base_url}/oauth2/v1/token"
-        self.client_id = OCI_CLIENT_ID
+        self.client_id = config.OCI_CLIENT_ID
         self.client_secret = self.get_client_secret(secret_ocid)
         self.timeout = 60
 

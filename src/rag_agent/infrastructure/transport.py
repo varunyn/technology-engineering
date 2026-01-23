@@ -29,7 +29,6 @@ from ..utils.utils import get_console_logger
 
 # changed to handle ENABLE_TRACING from UI
 import config
-from config_private import APM_PUBLIC_KEY
 
 
 logger = get_console_logger()
@@ -56,12 +55,12 @@ def http_transport(encoded_span):
             return None
 
         # Validate configuration - make APM optional
-        if not base_url or not APM_PUBLIC_KEY:
+        if not base_url or not config.APM_PUBLIC_KEY:
             logger.debug("APM not configured (base_url or public_key missing). Skipping APM transport.")
             return None
 
         # Construct endpoint dynamically
-        apm_url = f"{base_url}/observations/public-span?dataFormat=zipkin&dataFormatVersion=2&dataKey={APM_PUBLIC_KEY}"
+        apm_url = f"{base_url}/observations/public-span?dataFormat=zipkin&dataFormatVersion=2&dataKey={config.APM_PUBLIC_KEY}"
 
         response = requests.post(
             apm_url,
