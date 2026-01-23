@@ -1,9 +1,10 @@
 # Requirements Analysis
 
 ## Summary
-- **Original requirements.txt**: 229 dependencies
-- **Minimal requirements-minimal.txt**: ~30 core dependencies
-- **Reduction**: ~87% fewer explicit dependencies
+- **Original requirements.txt**: 230 dependencies
+- **Optimized requirements.txt**: 32 core dependencies
+- **Reduction**: ~86% fewer explicit dependencies
+- **Status**: Now using single optimized `requirements.txt` (requirements-minimal.txt and requirements_relaxed.txt removed)
 
 ## What Was Removed
 
@@ -64,17 +65,26 @@
 ### Optional (for MCP features)
 - `fastapi`, `fastmcp`, `mcp`, `starlette`
 
-## Recommendation
+## Current Status
 
-1. **For production**: Use `requirements-minimal.txt` and let pip resolve transitive dependencies
-2. **For development**: Keep original `requirements.txt` if you need Jupyter/notebooks
-3. **Test**: Create a fresh venv with minimal requirements and verify the app works
+✅ **Optimized**: Single `requirements.txt` file with 32 core dependencies
+✅ **Tested**: Verified in fresh virtual environment - all imports working
+✅ **Compatible**: Works with both `uv` and `pip` package managers
 
-## Next Steps
+## Installation
 
-1. Test `requirements-minimal.txt` in a fresh virtual environment
-2. Remove any remaining unused dependencies
-3. Consider splitting into:
-   - `requirements.txt` (core)
-   - `requirements-dev.txt` (development tools)
-   - `requirements-optional.txt` (MCP, monitoring, etc.)
+```bash
+# Using uv (recommended - faster)
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+
+# Using pip (traditional)
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Note
+
+The optimized `requirements.txt` includes only direct dependencies. Transitive dependencies (dependencies of dependencies) are automatically resolved and installed by the package manager.

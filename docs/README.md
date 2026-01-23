@@ -166,18 +166,41 @@ Streamlit UI → Displays answer + citations
 
 ### Installation
 
+This project uses `uv` for package management with `pyproject.toml` as the source of truth.
+
 ```bash
-# Create virtual environment with uv
-uv venv
+# Install uv (if not already installed)
+# macOS/Linux: curl -LsSf https://astral.sh/uv/install.sh | sh
+# Or: pip install uv
+
+# Sync project dependencies (creates .venv, installs all dependencies, generates uv.lock)
+uv sync
+
+# Activate virtual environment (optional - uv run handles this automatically)
 source .venv/bin/activate
 
-# Install dependencies
-uv pip install -r requirements.txt
+# Alternative: Install from requirements.txt (for backward compatibility)
+# uv pip install -r requirements.txt
+```
+
+**Note**: The project uses `pyproject.toml` for dependency management. The `requirements.txt` file is kept for backward compatibility but `pyproject.toml` is the authoritative source.
+
+**Development dependencies**:
+```bash
+# Install with development tools (pytest, black, ruff, mypy)
+uv sync --group dev
 ```
 
 ### Configuration
 
-1. **Database Configuration** (`config_private.py`):
+**IMPORTANT**: Copy `config_template.py` to `config.py` and fill in your actual values. The `config.py` file is in `.gitignore` and will not be committed to git.
+
+1. **Create your configuration file**:
+   ```bash
+   cp config_template.py config.py
+   ```
+
+2. **Database Configuration** (in `config.py`):
    ```python
    VECTOR_DB_USER = "your_user"
    VECTOR_DB_PWD = "your_password"
@@ -186,14 +209,14 @@ uv pip install -r requirements.txt
    VECTOR_WALLET_PWD = "wallet_password"
    ```
 
-2. **OCI Configuration** (`config.py`):
+3. **OCI Configuration** (in `config.py`):
    ```python
    OCI_PROFILE = "CHICAGO"  # Your OCI config profile
    COMPARTMENT_ID = "ocid1.compartment..."
    REGION = "us-chicago-1"
    ```
 
-3. **Model Configuration** (`config.py`):
+4. **Model Configuration** (in `config.py`):
    ```python
    LLM_MODEL_ID = "meta.llama-3.3-70b-instruct"
    EMBED_MODEL_ID = "cohere.embed-multilingual-v3.0"
@@ -259,6 +282,116 @@ The application will be available at `http://localhost:8501` (or next available 
 - Wallet-based database authentication
 - OCI IAM integration support
 
+## MCP (Model Context Protocol) Integration
+
+The application includes **MCP server** support, allowing LLM agents to interact with the vector database through standardized tools. This enables external agents (like Claude Desktop, custom LLM applications) to perform semantic search and query your knowledge base.
+
+### MCP Architecture
+
+```mermaid
+graph TB
+    subgraph "LLM Agent / Client"
+        LLM[LLM Agent<br/>Claude/Custom App]
+        CLIENT[MCP Client]
+    end
+    
+    subgraph "MCP Server"
+        SERVER[MCP Server<br/>FastMCP]
+        AUTH{JWT Auth<br/>Optional}
+        TOOLS[MCP Tools]
+    end
+    
+    subgraph "Tools Available"
+        T1[semantic_search]
+        T2[get_collections]
+        T3[list_documents_in_collection]
+    end
+    
+    subgraph "Data Layer"
+        DB[(Oracle 23AI<br/>Vector Database)]
+        EMB[Embedding Model]
+    end
+    
+    LLM -->|"1. User Query"| CLIENT
+    CLIENT -->|"2. Tool Call Request<br/>(with JWT if enabled)"| SERVER
+    SERVER -->|"3. Validate Token"| AUTH
+    AUTH -->|"4. Authenticated"| TOOLS
+    TOOLS -->|"5. Execute Tool"| T1
+    TOOLS -->|"5. Execute Tool"| T2
+    TOOLS -->|"5. Execute Tool"| T3
+    T1 -->|"6. Query"| DB
+    T1 -->|"6. Generate Embeddings"| EMB
+    EMB -->|"7. Vector Search"| DB
+    DB -->|"8. Results"| T1
+    T1 -->|"9. Tool Response"| SERVER
+    SERVER -->|"10. JSON Response"| CLIENT
+    CLIENT -->|"11. Formatted Answer"| LLM
+    
+    style LLM fill:#e1f5ff
+    style CLIENT fill:#e1f5ff
+    style SERVER fill:#fff4e1
+    style AUTH fill:#ffe1f5
+    style TOOLS fill:#fff4e1
+    style DB fill:#e1ffe1
+    style EMB fill:#ffe1f5
+```
+
+### MCP User Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant LLM as LLM Agent
+    participant Client as MCP Client
+    participant Server as MCP Server
+    participant Auth as JWT Auth<br/>(Optional)
+    participant DB as Oracle Vector DB
+    participant Embed as Embedding Model
+    
+    User->>LLM: Ask Question
+    LLM->>Client: Discover Available Tools
+    Client->>Server: list_tools()
+    Server-->>Client: Tool Schemas
+    
+    LLM->>Client: Call semantic_search(query)
+    Client->>Server: POST /mcp/ (with JWT if enabled)
+    
+    alt JWT Enabled
+        Server->>Auth: Validate Token
+        Auth-->>Server: Token Valid
+    end
+    
+    Server->>Embed: Generate Embeddings
+    Embed-->>Server: Query Vector
+    Server->>DB: Vector Similarity Search
+    DB-->>Server: Top K Documents
+    Server-->>Client: JSON Response
+    Client-->>LLM: Tool Results
+    LLM->>LLM: Generate Answer
+    LLM-->>User: Final Answer with Context
+```
+
+### MCP Tools
+
+The MCP server exposes three main tools:
+
+1. **`semantic_search`** - Search for relevant documents
+   - Parameters: `query`, `top_k`, `collection_name` (optional)
+   - Returns: Relevant document chunks with metadata
+
+2. **`get_collections`** - List available collections
+   - Returns: List of vector table names in the database
+
+3. **`list_documents_in_collection`** - List documents in a collection
+   - Parameters: `collection_name` (optional)
+   - Returns: List of unique document sources with chunk counts
+
+### Using MCP
+
+See detailed documentation in:
+- `MCP-QUICK-START.md` - Quick start guide
+- `docs/MCP-USAGE.md` - Comprehensive usage guide
+
 ## Project Structure
 
 ```
@@ -298,26 +431,38 @@ custom-rag-agent/
 │   ├── populate_document_chunks_vs.py # Data ingestion
 │   ├── chunk_index_utils.py    # Chunking utilities
 │   ├── bm25_search.py          # BM25 search
-│   ├── llm_with_mcp.py         # MCP integration
-│   └── mcp_explorer.py         # MCP explorer
+│   └── llm_with_mcp.py         # MCP integration
 ├── mcp_servers/                 # MCP server implementations
 │   ├── __init__.py
-│   ├── mcp_semantic_search.py  # Semantic search MCP
-│   ├── mcp_semantic_search_stdio.py
-│   ├── mcp_semantic_search_with_iam.py
+│   ├── mcp_semantic_search.py  # Semantic search MCP (HTTP)
+│   ├── mcp_semantic_search_stdio.py # Semantic search MCP (STDIO)
+│   ├── mcp_semantic_search_with_iam.py # Semantic search MCP (with IAM)
 │   ├── mcp_servers_config.py   # MCP server config
-│   └── minimal_mcp_server.py   # Minimal MCP server
+│   ├── mcp_explorer.py         # MCP explorer utility
+│   └── minimal_mcp_server.py   # Minimal MCP server example
 ├── tests/                       # Test suite
 │   ├── __init__.py
-│   └── test_*.py                # Test files
+│   ├── test_mcp_semantic_search.py
+│   ├── test_mcp_list_collection.py
+│   ├── test_mcp_list_collection_with_oci_iam.py
+│   ├── test_iam_for_jwt.py
+│   ├── nvidia_test01.py
+│   └── nvidia_test02.py
 ├── docs/                        # Documentation
-│   ├── README.md               # Main documentation
-│   ├── DATABASE-SETUP.md       # Database setup
+│   ├── README.md               # Main documentation (this file)
+│   ├── DATABASE-SETUP.md       # Database setup guide
+│   ├── MCP-USAGE.md            # MCP usage guide
+│   ├── MCP-TESTING.md          # MCP testing guide
 │   └── REQUIREMENTS-ANALYSIS.md # Requirements analysis
-├── config.py                    # Application configuration
-├── config_private.py           # Security credentials (gitignored)
-├── config_private_template.py  # Config template
-├── requirements.txt            # Dependencies
+├── config.py                    # Application configuration (gitignored)
+├── config_template.py          # Config template (safe to commit)
+├── pyproject.toml              # Project metadata and dependencies (uv)
+├── .python-version              # Python version pin (3.11)
+├── requirements.txt            # Dependencies (backward compatibility)
+├── uv.lock                     # Lockfile (generated by uv sync)
+├── test_mcp_simple.py          # Simple MCP test script
+├── start_ui_mcp.sh             # Script to start MCP UI
+├── MCP-QUICK-START.md          # Quick start guide for MCP
 └── .gitignore                  # Git ignore rules
 ```
 
