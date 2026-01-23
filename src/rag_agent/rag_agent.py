@@ -25,6 +25,7 @@ Warnings:
 """
 
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import InMemorySaver
 
 from .agent_state import State
 from .content_moderation import ContentModerator
@@ -34,13 +35,26 @@ from .reranker import Reranker
 from .answer_generator import AnswerGenerator
 
 
-def create_workflow():
+def create_workflow(checkpointer=None):
     """
-    Create the entire workflow
+    Create the entire workflow with optional checkpointer for state persistence.
+    
+    Args:
+        checkpointer: Optional checkpointer instance (e.g., InMemorySaver, PostgresSaver).
+                     If None, uses InMemorySaver for development. For production,
+                     consider using PostgresSaver for durable checkpointing.
+    
+    Returns:
+        Compiled StateGraph workflow with checkpointer support.
+    
+    Best Practices:
+        - Development: Use InMemorySaver (default) for simple state persistence
+        - Production: Use PostgresSaver for durable, persistent checkpointing
+        - Always pass thread_id in config when invoking: {"configurable": {"thread_id": "..."}}
     """
     workflow = StateGraph(State)
 
-    # create nodes (each is a a Runnable)
+    # create nodes (each is a Runnable)
     # step 0: content moderation
     moderator = ContentModerator()
     # step 1: rewrite the user request using history
@@ -49,7 +63,7 @@ def create_workflow():
     semantic_search = SemanticSearch()
     # step 3: filter and rerank, using a LLM
     reranker = Reranker()
-    # step 4: genereta final answer
+    # step 4: generate final answer
     answer_generator = AnswerGenerator()
 
     # Add nodes
@@ -67,7 +81,6 @@ def create_workflow():
     workflow.add_edge("Rerank", "Answer")
     workflow.add_edge("Answer", END)
 
-    # create workflow executor
     workflow_app = workflow.compile()
 
     return workflow_app

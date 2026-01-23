@@ -19,7 +19,8 @@ from pydantic import Field
 from fastmcp import FastMCP
 
 # to verify the JWT token
-from fastmcp.server.auth import BearerAuthProvider
+# Updated to use JWTVerifier (BearerAuthProvider deprecated in v2.14.0)
+from fastmcp.server.auth.providers.jwt import JWTVerifier
 from fastmcp.server.dependencies import get_http_headers
 
 from src.rag_agent.utils.utils import get_console_logger
@@ -33,8 +34,9 @@ AUTH = None
 
 if app_config.ENABLE_JWT_TOKEN:
     # check that a valid JWT token is provided
-    # see docs here: https://gofastmcp.com/servers/auth/bearer
-    AUTH = BearerAuthProvider(
+    # see docs here: https://gofastmcp.com/servers/auth/authentication
+    # Using JWTVerifier (replaces deprecated BearerAuthProvider in v2.14.0+)
+    AUTH = JWTVerifier(
         # this is the url to get the public key from IAM
         jwks_uri=f"{app_config.IAM_BASE_URL}/admin/v1/SigningCert/jwk",
         issuer=app_config.ISSUER,
@@ -130,7 +132,7 @@ def semantic_search(
     # here only log
     if app_config.ENABLE_JWT_TOKEN:
         log_headers()
-        # no verification here, delegated to BearerAuthProvider
+        # no verification here, delegated to JWTVerifier
 
     # Use default collection if not provided
     if collection_name is None:

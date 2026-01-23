@@ -27,22 +27,22 @@ dependencies = [
     "langgraph-checkpoint>=3.0.0",
     "typing-extensions>=4.15.0",
     # Web UI
-    "streamlit>=1.43.0",
+    "streamlit>=1.53.0",
     # Database & Vector Store
     "oracledb>=3.0.0",
     # Oracle Cloud Infrastructure
     "oci>=2.154.3",
     # MCP (Model Context Protocol) Server
     "fastapi>=0.115.14",
-    "fastmcp>=2.13.0",
+    "fastmcp>=2.14.0",
     "mcp>=1.17.0,<2.0.0",
     "starlette>=0.40.0",
     "uvicorn>=0.35.0",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.8.1",
     # Document Processing & Text Splitting
-    "langchain-text-splitters>=0.3.8",
-    "langchain-unstructured>=0.1.6",
+    "langchain-text-splitters>=1.1.0",
+    "langchain-unstructured>=1.0.0",
     "unstructured>=0.18.2",
     "unstructured-client>=0.37.2",
     # HTTP & Network

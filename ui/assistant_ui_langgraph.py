@@ -58,14 +58,11 @@ ASSISTANT = "assistant"
 logger = get_console_logger()
 
 
-# Initialize session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "workflow" not in st.session_state:
-    # the agent instance
     st.session_state.workflow = create_workflow()
 if "thread_id" not in st.session_state:
-    # generate a new thread_Id
     st.session_state.thread_id = str(uuid.uuid4())
 if "model_id" not in st.session_state:
     st.session_state.model_id = "meta.llama3.3-70B"
@@ -75,10 +72,10 @@ if "enable_reranker" not in st.session_state:
     st.session_state.enable_reranker = True
 if "collection_name" not in st.session_state:
     st.session_state.collection_name = config.COLLECTION_LIST[0]
-
-# to manage feedback
 if "get_feedback" not in st.session_state:
     st.session_state.get_feedback = False
+if "enable_tracing" not in st.session_state:
+    st.session_state.enable_tracing = False
 
 
 #
@@ -170,10 +167,10 @@ st.session_state.model_id = st.sidebar.selectbox(
 st.sidebar.text_input(label="Embed Model", value=config.EMBED_MODEL_ID, disabled=True)
 
 st.session_state.enable_reranker = st.sidebar.checkbox(
-    "Enable Reranker", value=True, disabled=False
+    "Enable Reranker", value=st.session_state.enable_reranker
 )
-config.ENABLE_TRACING = st.sidebar.checkbox(
-    "Enable tracing", value=False, disabled=False
+st.session_state.enable_tracing = st.sidebar.checkbox(
+    "Enable tracing", value=st.session_state.enable_tracing
 )
 
 
@@ -221,7 +218,7 @@ if question := st.chat_input("Hello, how can I help you?"):
                             "model_id": st.session_state.model_id,
                             "embed_model_type": config.EMBED_MODEL_TYPE,
                             "enable_reranker": st.session_state.enable_reranker,
-                            "enable_tracing": config.ENABLE_TRACING,
+                            "enable_tracing": st.session_state.enable_tracing,
                             "main_language": st.session_state.main_language,
                             "collection_name": st.session_state.collection_name,
                             "thread_id": st.session_state.thread_id,
@@ -232,6 +229,7 @@ if question := st.chat_input("Hello, how can I help you?"):
                         logger.info("Agent config: %s", agent_config)
 
                     # loop to manage streaming
+                    answer_generator = None
                     for event in st.session_state.workflow.stream(
                         input_state,
                         config=agent_config,
@@ -240,26 +238,33 @@ if question := st.chat_input("Hello, how can I help you?"):
                             MSG = f"Completed: {key}!"
                             logger.info(MSG)
                             st.toast(MSG)
-                            results.append(value)
 
                             # to see if there has been an error
-                            ERROR = value["error"]
+                            ERROR = value.get("error")
 
                             # update UI asap
                             if key == "QueryRewrite":
-                                st.sidebar.header("Standalone question:")
-                                st.sidebar.write(value["standalone_question"])
+                                with st.sidebar:
+                                    st.header("Standalone question:")
+                                    st.write(value["standalone_question"])
                             if key == "Rerank":
-                                st.sidebar.header("References:")
-                                st.sidebar.write(value["citations"])
+                                with st.sidebar:
+                                    st.header("References:")
+                                    st.write(value["citations"])
+                            
+                            # Extract generator immediately to avoid serialization issues
+                            if key == "Answer" and "final_answer" in value:
+                                answer_generator = value["final_answer"]
+                                # Don't store generator in results to avoid serialization
+                                value_without_generator = {k: v for k, v in value.items() if k != "final_answer"}
+                                results.append(value_without_generator)
+                            else:
+                                results.append(value)
 
                 # process final result from agent
                 FULL_RESPONSE = ""  # Initialize to avoid undefined variable error
-                if ERROR is None:
-                    # visualize the output
-                    answer_generator = results[-1]["final_answer"]
-
-                    # Stream
+                if ERROR is None and answer_generator is not None:
+                    # Stream the answer
                     with st.chat_message(ASSISTANT):
                         response_container = st.empty()
                         FULL_RESPONSE = ""

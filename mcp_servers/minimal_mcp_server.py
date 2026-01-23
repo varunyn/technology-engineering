@@ -8,9 +8,8 @@ from fastmcp import FastMCP
 
 # to verify the JWT token
 # if you don't need to add security, you can remove this
-# in newer version of FastMCP should be replaced with
-# from fastmcp.server.auth.providers.jwt import JWTVerifier
-from fastmcp.server.auth import BearerAuthProvider
+# Updated to use JWTVerifier (BearerAuthProvider deprecated in v2.14.0+)
+from fastmcp.server.auth.providers.jwt import JWTVerifier
 
 from config import (
     # needed only to manage JWT
@@ -33,7 +32,8 @@ AUTH = None
 
 if ENABLE_JWT_TOKEN:
     # check that a valid JWT token is provided
-    AUTH = BearerAuthProvider(
+    # Using JWTVerifier (replaces deprecated BearerAuthProvider in v2.14.0+)
+    AUTH = JWTVerifier(
         # this is the url to get the public key from IAM
         # the PK is used to check the JWT
         jwks_uri=f"{IAM_BASE_URL}/admin/v1/SigningCert/jwk",
