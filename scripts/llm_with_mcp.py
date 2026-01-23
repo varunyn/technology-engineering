@@ -27,7 +27,7 @@ from src.rag_agent.infrastructure.oci_models import get_llm
 from src.rag_agent.utils.utils import get_console_logger
 import config
 from config_private import SECRET_OCID
-from mcp.mcp_servers_config import MCP_SERVERS_CONFIG
+from mcp_servers.mcp_servers_config import MCP_SERVERS_CONFIG
 
 logger = get_console_logger()
 
@@ -42,7 +42,7 @@ SCOPE = "urn:opc:idm:__myscopes__"
 SYSTEM_PROMPT = """You are an AI assistant equipped with an MCP server and several tools.
 Provide all the needed information with a detailed query when you use a tool.
 If the collection name is not provided in the user's prompt, 
-use the collection BOOKS to get the additional information you need to answer.
+use the default collection from the available collections to get the additional information you need to answer.
 """
 
 

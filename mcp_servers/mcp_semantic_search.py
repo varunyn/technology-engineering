@@ -60,20 +60,25 @@ def semantic_search(
     ],
     top_k: Annotated[int, Field(description="TOP_K parameter for search")] = 5,
     collection_name: Annotated[
-        str, Field(description="The name of DB table")
-    ] = "BOOKS",
+        str, Field(description="The name of the collection (table) to search in")
+    ] = None,
 ) -> dict:
     """
     Perform a semantic search based on the provided query.
     Args:
         query (str): The search query.
         top_k (int): The number of top results to return.
-        collection_name (str): The name of the collection (DB table) to search in.
+        collection_name (str): The name of the collection (table) to search in. 
+                              If not provided, uses the default collection from config.
     Returns:
         dict: a dictionary containing the relevant documents.
     """
     # to handle auth using JWT tokens
     validate_token()
+
+    # Use default collection if not provided
+    if collection_name is None:
+        collection_name = config.COLLECTION_LIST[0] if config.COLLECTION_LIST else "DOCUMENT_CHUNKS_VS"
 
     try:
         # must be the same embedding model used during load in the Vector Store
@@ -88,7 +93,7 @@ def semantic_search(
             )
             relevant_docs = v_store.similarity_search(query=query, k=top_k)
 
-            if DEBUG:
+            if config.DEBUG:
                 logger.info("Result from the similarity search:")
                 logger.info(relevant_docs)
 
@@ -116,34 +121,41 @@ def get_collections() -> list:
 
 
 @mcp.tool
-def get_books_in_collection(
+def list_documents_in_collection(
     collection_name: Annotated[
-        str, Field(description="The name of the collection (DB table) to search in.")
-    ] = "BOOKS",
+        str, Field(description="The name of the collection (table) to list documents from")
+    ] = None,
 ) -> list:
     """
-    Get the list of books in a specific collection.
+    Get the list of documents/sources in a specific collection.
+    This returns unique document sources from the collection's metadata along with chunk counts.
+    
     Args:
-        collection_name (str): The name of the collection (DB table) to search in.
+        collection_name (str): The name of the collection (table) to list from.
+                              If not provided, uses the default collection from config.
     Returns:
-        list: A list of book titles in the specified collection.
+        list: A list of tuples containing (document_source, chunk_count) for each unique document.
     """
     # check that a valid JWT is provided
     validate_token()
 
+    # Use default collection if not provided
+    if collection_name is None:
+        collection_name = config.COLLECTION_LIST[0] if config.COLLECTION_LIST else "DOCUMENT_CHUNKS_VS"
+
     try:
-        books = list_books_in_collection(collection_name)
-        return books
+        documents = list_books_in_collection(collection_name)
+        return documents
     except Exception as e:
-        logger.error("Error getting books in collection: %s", e)
+        logger.error("Error getting documents in collection: %s", e)
         return []
 
 
 if __name__ == "__main__":
     mcp.run(
-        transport=TRANSPORT,
+        transport=config.TRANSPORT,
         # Bind to all interfaces
-        host=HOST,
-        port=PORT,
+        host=config.HOST,
+        port=config.PORT,
         log_level="INFO",
     )

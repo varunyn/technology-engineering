@@ -300,7 +300,7 @@ custom-rag-agent/
 │   ├── bm25_search.py          # BM25 search
 │   ├── llm_with_mcp.py         # MCP integration
 │   └── mcp_explorer.py         # MCP explorer
-├── mcp/                         # MCP server implementations
+├── mcp_servers/                 # MCP server implementations
 │   ├── __init__.py
 │   ├── mcp_semantic_search.py  # Semantic search MCP
 │   ├── mcp_semantic_search_stdio.py

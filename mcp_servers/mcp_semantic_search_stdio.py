@@ -1,29 +1,35 @@
 """
 Semantic Search exposed as an MCP tool
-This verion use stdio (local) as transport
+This version uses stdio (local) as transport
 
 Author: L. Saetta
 License: MIT
 
-This one requires, if enabled, that a token is generated using the libray PyJWT.
+This one requires, if enabled, that a token is generated using the library PyJWT.
 See the associated client
 """
+
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from typing import Annotated
 from pydantic import Field
 
 from fastmcp import FastMCP
 
-from utils import get_console_logger
-from oci_models import get_embedding_model, get_oracle_vs
-from db_utils import get_connection, list_collections, list_books_in_collection
-
-from config import DEBUG, EMBED_MODEL_TYPE
+from src.rag_agent.utils.utils import get_console_logger
+from src.rag_agent.infrastructure.oci_models import get_embedding_model, get_oracle_vs
+from src.rag_agent.infrastructure.db_utils import get_connection, list_collections, list_books_in_collection
+import config as app_config
 
 logger = get_console_logger()
 
 # local, stdio, to test Claude integration
-TRANSPORT = "stdio"
+# TRANSPORT is set to "stdio" for this version
 
 mcp = FastMCP("Demo Semantic Search as MCP server")
 
@@ -43,22 +49,26 @@ def semantic_search(
     ],
     top_k: Annotated[int, Field(description="TOP_K parameter for search")] = 5,
     collection_name: Annotated[
-        str, Field(description="The name of DB table")
-    ] = "BOOKS",
+        str, Field(description="The name of the collection (table) to search in")
+    ] = None,
 ) -> dict:
     """
     Perform a semantic search based on the provided query.
     Args:
         query (str): The search query.
         top_k (int): The number of top results to return.
-        collection_name (str): The name of the collection (DB table) to search in.
+        collection_name (str): The name of the collection (table) to search in.
+                              If not provided, uses the default collection from config.
     Returns:
         dict: a dictionary containing the relevant documents.
     """
+    # Use default collection if not provided
+    if collection_name is None:
+        collection_name = app_config.COLLECTION_LIST[0] if app_config.COLLECTION_LIST else "DOCUMENT_CHUNKS_VS"
 
     try:
         # must be the same embedding model used during load in the Vector Store
-        embed_model = get_embedding_model(EMBED_MODEL_TYPE)
+        embed_model = get_embedding_model(app_config.EMBED_MODEL_TYPE)
 
         # get a connection to the DB and init VS
         with get_connection() as conn:
@@ -71,7 +81,7 @@ def semantic_search(
 
             # (L.S.) we could additionally plug a reranker here
 
-            if DEBUG:
+            if app_config.DEBUG:
                 logger.info("Result from the similarity search:")
                 logger.info(relevant_docs)
 
@@ -97,28 +107,34 @@ def get_collections() -> list:
 
 
 @mcp.tool
-def get_books_in_collection(
+def list_documents_in_collection(
     collection_name: Annotated[
-        str, Field(description="The name of the collection (DB table) to search in.")
-    ] = "BOOKS",
+        str, Field(description="The name of the collection (table) to list documents from")
+    ] = None,
 ) -> list:
     """
-    Get the list of books in a specific collection.
+    Get the list of documents/sources in a specific collection.
+    This returns unique document sources from the collection's metadata along with chunk counts.
+    
     Args:
-        collection_name (str): The name of the collection (DB table) to search in.
+        collection_name (str): The name of the collection (table) to list from.
+                              If not provided, uses the default collection from config.
     Returns:
-        list: A list of book titles in the specified collection.
+        list: A list of tuples containing (document_source, chunk_count) for each unique document.
     """
+    # Use default collection if not provided
+    if collection_name is None:
+        collection_name = app_config.COLLECTION_LIST[0] if app_config.COLLECTION_LIST else "DOCUMENT_CHUNKS_VS"
 
     try:
-        books = list_books_in_collection(collection_name)
-        return books
+        documents = list_books_in_collection(collection_name)
+        return documents
     except Exception as e:
-        logger.error("Error getting books in collection: %s", e)
+        logger.error("Error getting documents in collection: %s", e)
         return []
 
 
 if __name__ == "__main__":
     mcp.run(
-        transport=TRANSPORT,
+        transport="stdio",
     )

@@ -13,7 +13,7 @@ sys.path.insert(0, str(project_root))
 import asyncio
 import traceback
 import streamlit as st
-from mcp.mcp_servers_config import MCP_SERVERS_CONFIG
+from mcp_servers.mcp_servers_config import MCP_SERVERS_CONFIG
 
 # this one contains the backend and the test code only for console
 from scripts.llm_with_mcp import AgentWithMCP, default_jwt_supplier
