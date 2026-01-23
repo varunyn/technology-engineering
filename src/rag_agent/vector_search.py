@@ -31,12 +31,10 @@ from langchain_core.runnables import Runnable
 # integration with APM
 from py_zipkin.zipkin import zipkin_span
 
-from agent_state import State
-from oci_models import get_embedding_model, get_oracle_vs
-from utils import get_console_logger, docs_serializable
-
-from config import AGENT_NAME, DEBUG, TOP_K, EMBED_MODEL_TYPE
-
+from .agent_state import State
+from .infrastructure.oci_models import get_embedding_model, get_oracle_vs
+from .utils.utils import get_console_logger, docs_serializable
+import config as app_config
 from config_private import CONNECT_ARGS
 
 logger = get_console_logger()
@@ -58,23 +56,25 @@ class SemanticSearch(Runnable):
         """
         return oracledb.connect(**CONNECT_ARGS)
 
-    @zipkin_span(service_name=AGENT_NAME, span_name="similarity_search")
+    @zipkin_span(service_name=app_config.AGENT_NAME, span_name="similarity_search")
     def invoke(self, input: State, config=None, **kwargs):
         """
         This method invokes the vector search
 
         input: the agent state
         """
-        collection_name = config["configurable"]["collection_name"]
+        # Rename parameter to avoid shadowing the config module
+        run_config = config
+        collection_name = run_config["configurable"]["collection_name"]
         # (07/2025) added to support NVIDIA mbeddings
-        embed_model_type = config["configurable"]["embed_model_type"]
+        embed_model_type = run_config["configurable"]["embed_model_type"]
 
         relevant_docs = []
         error = None
 
         standalone_question = input["standalone_question"]
 
-        if DEBUG:
+        if app_config.DEBUG:
             logger.info("Search question: %s", standalone_question)
 
         try:
@@ -90,10 +90,10 @@ class SemanticSearch(Runnable):
                 )
 
                 relevant_docs = v_store.similarity_search(
-                    query=standalone_question, k=TOP_K
+                    query=standalone_question, k=app_config.TOP_K
                 )
 
-            if DEBUG:
+            if app_config.DEBUG:
                 logger.info("Result from similarity search:")
                 logger.info(relevant_docs)
 
@@ -116,7 +116,7 @@ class SemanticSearch(Runnable):
         docs is a list of Langchain documents
         """
         try:
-            embed_model = get_embedding_model(EMBED_MODEL_TYPE)
+            embed_model = get_embedding_model(app_config.EMBED_MODEL_TYPE)
 
             with self.get_connection() as conn:
                 v_store = get_oracle_vs(

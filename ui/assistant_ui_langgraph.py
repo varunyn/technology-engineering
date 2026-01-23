@@ -22,6 +22,14 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
+import sys
+import os
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 import uuid
 from typing import List, Union
 import time
@@ -33,10 +41,10 @@ from langchain_core.messages import HumanMessage, AIMessage
 from py_zipkin.zipkin import zipkin_span
 from py_zipkin import Encoding
 
-from rag_agent import State, create_workflow
-from rag_feedback import RagFeedback
-from transport import http_transport
-from utils import get_console_logger
+from src.rag_agent import State, create_workflow
+from src.rag_agent.utils.rag_feedback import RagFeedback
+from src.rag_agent.infrastructure.transport import http_transport
+from src.rag_agent.utils.utils import get_console_logger
 
 # changed to better manage ENABLE_TRACING (can be enabled from UI)
 import config

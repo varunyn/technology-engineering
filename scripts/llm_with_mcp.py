@@ -6,6 +6,14 @@ This one provide also support for security in MCP calls, using JWT token.
 This is the backend for the Streamlit MCP UI.
 """
 
+import sys
+import os
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 import json
 import asyncio
 from typing import List, Dict, Any, Callable, Sequence, Optional
@@ -14,12 +22,12 @@ from fastmcp import Client as MCPClient
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
 # our code imports
-from oci_jwt_client import OCIJWTClient
-from oci_models import get_llm
-from utils import get_console_logger
-from config import IAM_BASE_URL, ENABLE_JWT_TOKEN
+from src.rag_agent.infrastructure.oci_jwt_client import OCIJWTClient
+from src.rag_agent.infrastructure.oci_models import get_llm
+from src.rag_agent.utils.utils import get_console_logger
+import config
 from config_private import SECRET_OCID
-from mcp_servers_config import MCP_SERVERS_CONFIG
+from mcp.mcp_servers_config import MCP_SERVERS_CONFIG
 
 logger = get_console_logger()
 
@@ -42,9 +50,9 @@ def default_jwt_supplier() -> str:
     """
     Get a valid JWT token to make the call to MCP server
     """
-    if ENABLE_JWT_TOKEN:
+    if config.ENABLE_JWT_TOKEN:
         # Always return a FRESH token; do not include "Bearer " (FastMCP adds it)
-        token, _, _ = OCIJWTClient(IAM_BASE_URL, SCOPE, SECRET_OCID).get_token()
+        token, _, _ = OCIJWTClient(config.IAM_BASE_URL, SCOPE, SECRET_OCID).get_token()
     else:
         # JWT security disabled
         token = None

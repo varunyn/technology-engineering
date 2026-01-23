@@ -8,19 +8,24 @@ This one requires, if enabled, that a token is generated using the libray PyJWT.
 See the associated client
 """
 
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from typing import Annotated
 from pydantic import Field
 
 from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_headers
 
-from utils import get_console_logger
-from jwt_utils import get_token_from_headers, verify_jwt_token
-from oci_models import get_embedding_model, get_oracle_vs
-from db_utils import get_connection, list_collections, list_books_in_collection
-
-from config import DEBUG, EMBED_MODEL_TYPE
-from config import TRANSPORT, HOST, PORT, ENABLE_JWT_TOKEN
+from src.rag_agent.utils.utils import get_console_logger
+from src.rag_agent.infrastructure.jwt_utils import get_token_from_headers, verify_jwt_token
+from src.rag_agent.infrastructure.oci_models import get_embedding_model, get_oracle_vs
+from src.rag_agent.infrastructure.db_utils import get_connection, list_collections, list_books_in_collection
+import config
 
 logger = get_console_logger()
 
@@ -37,8 +42,8 @@ def validate_token():
     headers = get_http_headers(include_all=True)
 
     # check that a valid JWT is provided
-    if ENABLE_JWT_TOKEN:
-        if DEBUG:
+    if config.ENABLE_JWT_TOKEN:
+        if config.DEBUG:
             logger.info("Headers: %s", headers)
 
         # the header has the format: Bearer <token>
@@ -72,7 +77,7 @@ def semantic_search(
 
     try:
         # must be the same embedding model used during load in the Vector Store
-        embed_model = get_embedding_model(EMBED_MODEL_TYPE)
+        embed_model = get_embedding_model(config.EMBED_MODEL_TYPE)
 
         # get a connection to the DB and init VS
         with get_connection() as conn:

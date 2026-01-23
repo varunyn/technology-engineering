@@ -12,8 +12,8 @@ These function must be used if you are not using OCI Iam to issue the JWT token
 
 from datetime import datetime, timedelta
 import jwt
-from utils import get_console_logger
-from config import DEBUG
+from ..utils.utils import get_console_logger
+import config
 from config_private import JWT_ALGORITHM, JWT_SECRET
 
 logger = get_console_logger()
@@ -44,7 +44,7 @@ def verify_jwt_token(token: str) -> None:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
 
         # here we should check the content of payload
-        if DEBUG:
+        if config.DEBUG:
             logger.info("Payload from token: %s", payload)
 
         return payload

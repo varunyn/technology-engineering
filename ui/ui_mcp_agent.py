@@ -2,14 +2,22 @@
 Streamlit UI for MCP servers
 """
 
+import sys
+import os
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 import asyncio
 import traceback
 import streamlit as st
-from mcp_servers_config import MCP_SERVERS_CONFIG
+from mcp.mcp_servers_config import MCP_SERVERS_CONFIG
 
 # this one contains the backend and the test code only for console
-from llm_with_mcp import AgentWithMCP, default_jwt_supplier
-from utils import get_console_logger
+from scripts.llm_with_mcp import AgentWithMCP, default_jwt_supplier
+from src.rag_agent.utils.utils import get_console_logger
 
 logger = get_console_logger()
 

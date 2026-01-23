@@ -33,13 +33,13 @@ from langchain_core.prompts import PromptTemplate
 # integration with APM
 from py_zipkin.zipkin import zipkin_span
 
-from agent_state import State
-from prompts import (
+from .agent_state import State
+from .prompts import (
     RERANKER_TEMPLATE,
 )
-from oci_models import get_llm
-from utils import get_console_logger, extract_json_from_text
-from config import DEBUG, AGENT_NAME, TOP_K
+from .infrastructure.oci_models import get_llm
+from .utils.utils import get_console_logger, extract_json_from_text
+import config as app_config
 
 logger = get_console_logger()
 
@@ -103,7 +103,7 @@ class Reranker(Runnable):
         # Extract ranking order
         json_dict = extract_json_from_text(reranker_output)
 
-        if DEBUG:
+        if app_config.DEBUG:
             logger.info(json_dict.get("ranked_chunks", "No ranked chunks found."))
 
         # Get indexes and sort documents
@@ -111,25 +111,27 @@ class Reranker(Runnable):
         indexes = [
             chunk["index"]
             for chunk in json_dict.get("ranked_chunks", [])
-            if chunk["index"] < TOP_K
+            if chunk["index"] < app_config.TOP_K
         ]
 
         return [retriever_docs[i] for i in indexes]
 
-    @zipkin_span(service_name=AGENT_NAME, span_name="reranking")
+    @zipkin_span(service_name=app_config.AGENT_NAME, span_name="reranking")
     def invoke(self, input: State, config=None, **kwargs):
         """
         Implements reranking logic.
 
         input: The agent state.
         """
-        enable_reranker = config["configurable"]["enable_reranker"]
+        # Rename parameter to avoid shadowing the config module
+        run_config = config
+        enable_reranker = run_config["configurable"]["enable_reranker"]
 
         user_request = input.get("standalone_question", "")
         retriever_docs = input.get("retriever_docs", [])
         error = None
 
-        if DEBUG:
+        if app_config.DEBUG:
             logger.info("Reranker input state: %s", input)
 
         try:

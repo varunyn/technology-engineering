@@ -206,19 +206,19 @@ uv pip install -r requirements.txt
 
 ```bash
 # Process PDF files
-python populate_document_chunks_vs.py --files "document1.pdf" "document2.pdf"
+python scripts/populate_document_chunks_vs.py --files "document1.pdf" "document2.pdf"
 
 # Process URLs
-python populate_document_chunks_vs.py --urls "https://docs.oracle.com" "https://example.com"
+python scripts/populate_document_chunks_vs.py --urls "https://docs.oracle.com" "https://example.com"
 
 # Process scraped data
-python populate_document_chunks_vs.py --api-url "http://api-endpoint/v1/crawl/..."
+python scripts/populate_document_chunks_vs.py --api-url "http://api-endpoint/v1/crawl/..."
 ```
 
 ### 2. Run the Application
 
 ```bash
-streamlit run assistant_ui_langgraph.py
+streamlit run ui/assistant_ui_langgraph.py
 ```
 
 The application will be available at `http://localhost:8501` (or next available port).
@@ -263,20 +263,62 @@ The application will be available at `http://localhost:8501` (or next available 
 
 ```
 custom-rag-agent/
-├── assistant_ui_langgraph.py    # Streamlit UI
-├── rag_agent.py                 # LangGraph workflow definition
-├── agent_state.py               # State management
-├── content_moderation.py        # Content validation
-├── query_rewriter.py            # Query reformulation
-├── vector_search.py             # Semantic search
-├── reranker.py                  # Document reranking
-├── answer_generator.py          # Answer generation
-├── oci_models.py                # OCI GenAI integration
-├── db_utils.py                  # Database utilities
-├── populate_document_chunks_vs.py  # Data ingestion script
+├── src/
+│   └── rag_agent/               # Core RAG agent package
+│       ├── __init__.py
+│       ├── agent_state.py       # State management
+│       ├── rag_agent.py         # LangGraph workflow definition
+│       ├── content_moderation.py # Content validation
+│       ├── query_rewriter.py    # Query reformulation
+│       ├── vector_search.py     # Semantic search
+│       ├── reranker.py          # Document reranking
+│       ├── answer_generator.py  # Answer generation
+│       ├── prompts.py          # Prompt templates
+│       ├── infrastructure/      # Infrastructure components
+│       │   ├── __init__.py
+│       │   ├── oci_models.py   # OCI GenAI integration
+│       │   ├── db_utils.py     # Database utilities
+│       │   ├── transport.py   # APM transport
+│       │   ├── jwt_utils.py    # JWT utilities
+│       │   ├── oci_jwt_client.py # OCI JWT client
+│       │   └── custom_rest_embeddings.py # Custom embeddings
+│       └── utils/              # Utility functions
+│           ├── __init__.py
+│           ├── utils.py        # General utilities
+│           └── rag_feedback.py # Feedback handling
+├── ui/                          # User interface
+│   ├── __init__.py
+│   ├── assistant_ui_langgraph.py # Streamlit UI
+│   └── ui_mcp_agent.py         # MCP UI
+├── api/                         # API endpoints
+│   ├── __init__.py
+│   └── rag_agent_api.py        # FastAPI REST API
+├── scripts/                     # Utility scripts
+│   ├── __init__.py
+│   ├── populate_document_chunks_vs.py # Data ingestion
+│   ├── chunk_index_utils.py    # Chunking utilities
+│   ├── bm25_search.py          # BM25 search
+│   ├── llm_with_mcp.py         # MCP integration
+│   └── mcp_explorer.py         # MCP explorer
+├── mcp/                         # MCP server implementations
+│   ├── __init__.py
+│   ├── mcp_semantic_search.py  # Semantic search MCP
+│   ├── mcp_semantic_search_stdio.py
+│   ├── mcp_semantic_search_with_iam.py
+│   ├── mcp_servers_config.py   # MCP server config
+│   └── minimal_mcp_server.py   # Minimal MCP server
+├── tests/                       # Test suite
+│   ├── __init__.py
+│   └── test_*.py                # Test files
+├── docs/                        # Documentation
+│   ├── README.md               # Main documentation
+│   ├── DATABASE-SETUP.md       # Database setup
+│   └── REQUIREMENTS-ANALYSIS.md # Requirements analysis
 ├── config.py                    # Application configuration
-├── config_private.py            # Security credentials
-└── requirements.txt             # Dependencies
+├── config_private.py           # Security credentials (gitignored)
+├── config_private_template.py  # Config template
+├── requirements.txt            # Dependencies
+└── .gitignore                  # Git ignore rules
 ```
 
 ## Advantages of Agentic Approach

@@ -32,14 +32,13 @@ from langchain_core.prompts import PromptTemplate
 # integration with APM
 from py_zipkin.zipkin import zipkin_span
 
-from agent_state import State
-from oci_models import get_llm
-from prompts import (
+from .agent_state import State
+from .infrastructure.oci_models import get_llm
+from .prompts import (
     ANSWER_PROMPT_TEMPLATE,
 )
-
-from utils import get_console_logger
-from config import AGENT_NAME, DEBUG
+from .utils.utils import get_console_logger
+import config as app_config
 
 logger = get_console_logger()
 
@@ -72,25 +71,27 @@ class AnswerGenerator(Runnable):
 
         return _context
 
-    @zipkin_span(service_name=AGENT_NAME, span_name="answer_generation")
+    @zipkin_span(service_name=app_config.AGENT_NAME, span_name="answer_generation")
     def invoke(self, input: State, config=None, **kwargs):
         """
         Generate the final answer
         """
+        # Rename parameter to avoid shadowing the config module
+        run_config = config
         # get the model_id from config
-        model_id = config["configurable"]["model_id"]
+        model_id = run_config["configurable"]["model_id"]
 
-        if config["configurable"]["main_language"] in self.dict_languages:
+        if run_config["configurable"]["main_language"] in self.dict_languages:
             # want to change language
             main_language = self.dict_languages.get(
-                config["configurable"]["main_language"]
+                run_config["configurable"]["main_language"]
             )
         else:
             # "same as the question" (default)
             # answer will be in the same language as the question
             main_language = None
 
-        if DEBUG:
+        if app_config.DEBUG:
             logger.info("AnswerGenerator, model_id: %s", model_id)
             logger.info("AnswerGenerator, main_language: %s", main_language)
 

@@ -7,7 +7,7 @@ License: MIT
 from typing import List
 from langchain_core.embeddings import Embeddings
 import requests
-from utils import get_console_logger
+from ..utils.utils import get_console_logger
 
 # list of allowed values for dims, input_type and truncate parms
 ALLOWED_DIMS = {384, 512, 768, 1024, 2048}

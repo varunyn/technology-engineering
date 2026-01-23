@@ -2,11 +2,18 @@
 BM25 Search Engine with Oracle Database
 """
 
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 import re
 import oracledb
 import numpy as np
 from rank_bm25 import BM25Okapi
-from utils import get_console_logger
+from src.rag_agent.utils.utils import get_console_logger
 from config_private import CONNECT_ARGS
 
 logger = get_console_logger()

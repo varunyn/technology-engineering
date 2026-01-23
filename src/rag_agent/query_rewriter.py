@@ -31,11 +31,11 @@ from langchain_core.prompts import PromptTemplate
 # integration with APM
 from py_zipkin.zipkin import zipkin_span
 
-from agent_state import State
-from prompts import REFORMULATE_PROMPT_TEMPLATE
-from oci_models import get_llm
-from utils import get_console_logger
-from config import DEBUG, AGENT_NAME
+from .agent_state import State
+from .prompts import REFORMULATE_PROMPT_TEMPLATE
+from .infrastructure.oci_models import get_llm
+from .utils.utils import get_console_logger
+import config as app_config
 
 logger = get_console_logger()
 
@@ -51,20 +51,22 @@ class QueryRewriter(Runnable):
         Init
         """
 
-    @zipkin_span(service_name=AGENT_NAME, span_name="query_rewriting")
+    @zipkin_span(service_name=app_config.AGENT_NAME, span_name="query_rewriting")
     def invoke(self, input: State, config=None, **kwargs):
         """
         Rewrite the query
 
         Reformulate the question in a standalone question, using the chat_history
         """
+        # Rename parameter to avoid shadowing the config module
+        run_config = config
         user_request = input["user_request"]
         error = None
         # Initialize standalone_question as fallback
         standalone_question = user_request
 
         if len(input["chat_history"]) > 0:
-            if DEBUG:
+            if app_config.DEBUG:
                 logger.info("Reformulating the question...")
 
             try:
@@ -93,7 +95,7 @@ class QueryRewriter(Runnable):
                     # Try to get content from message object
                     standalone_question = str(response)
 
-                if DEBUG:
+                if app_config.DEBUG:
                     logger.info("Standalone question: %s", standalone_question)
             except Exception as e:
                 logger.error("Error in query_rewriting: %s", e)

@@ -25,7 +25,7 @@ Warnings:
 """
 
 import requests
-from utils import get_console_logger
+from ..utils.utils import get_console_logger
 
 # changed to handle ENABLE_TRACING from UI
 import config

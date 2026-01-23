@@ -10,8 +10,8 @@ for now it assumes API_KEY auth, can be changed for INSTANCE_PRINCIPAL
 import base64
 import oci
 import requests
-from utils import get_console_logger
-from config import DEBUG
+from ..utils.utils import get_console_logger
+import config
 
 # this is the cliend_id defined in the config of the
 # confidential application in OCI IAM
@@ -89,7 +89,7 @@ class OCIJWTClient:
             timeout=self.timeout,
         )
 
-        if DEBUG:
+        if config.DEBUG:
             logger.info("-------------------------------------------")
             logger.info("---- HTTP response text with JWT token ----")
             logger.info("-------------------------------------------")

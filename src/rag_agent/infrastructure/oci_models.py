@@ -32,20 +32,9 @@ from langchain_community.vectorstores.utils import DistanceStrategy
 from langchain_community.vectorstores.oraclevs import OracleVS
 import oci
 
-from custom_rest_embeddings import CustomRESTEmbeddings
-from utils import get_console_logger
-from config import (
-    AUTH,
-    SERVICE_ENDPOINT,
-    COMPARTMENT_ID,
-    # used only for defaults
-    LLM_MODEL_ID,
-    TEMPERATURE,
-    MAX_TOKENS,
-    EMBED_MODEL_ID,
-    NVIDIA_EMBED_MODEL_URL,
-    OCI_PROFILE,
-)
+from .custom_rest_embeddings import CustomRESTEmbeddings
+from ..utils.utils import get_console_logger
+import config
 
 
 logger = get_console_logger()
@@ -73,13 +62,21 @@ def normalize_provider(model_id: str) -> str:
     return _provider
 
 
-def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKENS):
+def get_llm(model_id=None, temperature=None, max_tokens=None):
     """
     Initialize and return an instance of ChatOCIGenAI with the specified configuration.
 
     Returns:
         ChatOCIGenAI: An instance of the OCI GenAI language model.
     """
+    # Use defaults from config if not provided
+    if model_id is None:
+        model_id = config.LLM_MODEL_ID
+    if temperature is None:
+        temperature = config.TEMPERATURE
+    if max_tokens is None:
+        max_tokens = config.MAX_TOKENS
+    
     # try to identify the provider
     _provider = normalize_provider(model_id)
 
@@ -94,20 +91,20 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
 
     # Prepare kwargs for ChatOCIGenAI
     llm_kwargs = {
-        "auth_type": AUTH,
+        "auth_type": config.AUTH,
         "model_id": model_id,
-        "service_endpoint": SERVICE_ENDPOINT,
-        "compartment_id": COMPARTMENT_ID,
+        "service_endpoint": config.SERVICE_ENDPOINT,
+        "compartment_id": config.COMPARTMENT_ID,
         "is_stream": True,
         "model_kwargs": _model_kwargs,
         "provider": _provider,
     }
     
     # Add OCI profile if specified (auth_file_location defaults to ~/.oci/config)
-    if OCI_PROFILE:
-        llm_kwargs["auth_profile"] = OCI_PROFILE
+    if config.OCI_PROFILE:
+        llm_kwargs["auth_profile"] = config.OCI_PROFILE
         llm_kwargs["auth_file_location"] = "~/.oci/config"
-        logger.info(f"Using OCI profile: {OCI_PROFILE} from ~/.oci/config")
+        logger.info(f"Using OCI profile: {config.OCI_PROFILE} from ~/.oci/config")
 
     llm = ChatOCIGenAI(**llm_kwargs)
     return llm
@@ -130,25 +127,25 @@ def get_embedding_model(model_type="OCI"):
     if model_type == "OCI":
         # Prepare kwargs for OCIGenAIEmbeddings
         embed_kwargs = {
-            "auth_type": AUTH,
-            "model_id": EMBED_MODEL_ID,
-            "service_endpoint": SERVICE_ENDPOINT,
-            "compartment_id": COMPARTMENT_ID,
+            "auth_type": config.AUTH,
+            "model_id": config.EMBED_MODEL_ID,
+            "service_endpoint": config.SERVICE_ENDPOINT,
+            "compartment_id": config.COMPARTMENT_ID,
         }
         
         # Add OCI profile if specified (auth_file_location defaults to ~/.oci/config)
-        if OCI_PROFILE:
-            embed_kwargs["auth_profile"] = OCI_PROFILE
+        if config.OCI_PROFILE:
+            embed_kwargs["auth_profile"] = config.OCI_PROFILE
             embed_kwargs["auth_file_location"] = "~/.oci/config"
-            logger.info(f"Using OCI profile: {OCI_PROFILE} for embeddings from ~/.oci/config")
+            logger.info(f"Using OCI profile: {config.OCI_PROFILE} for embeddings from ~/.oci/config")
         
         embed_model = OCIGenAIEmbeddings(**embed_kwargs)
     elif model_type == "NVIDIA":
         embed_model = CustomRESTEmbeddings(
-            api_url=NVIDIA_EMBED_MODEL_URL, model=EMBED_MODEL_ID
+            api_url=config.NVIDIA_EMBED_MODEL_URL, model=config.EMBED_MODEL_ID
         )
 
-    logger.info("Embedding model is: %s", EMBED_MODEL_ID)
+    logger.info("Embedding model is: %s", config.EMBED_MODEL_ID)
     
     return embed_model
 

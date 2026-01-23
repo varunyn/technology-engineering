@@ -27,7 +27,7 @@ Warnings:
 from datetime import datetime
 import oracledb
 
-from utils import get_console_logger
+from .utils import get_console_logger
 from config_private import CONNECT_ARGS
 
 logger = get_console_logger()

@@ -7,6 +7,13 @@ Python Version: 3.11
 Usage: contains the functions to split in chunks and create the index
 """
 
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from collections import defaultdict
 from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader
@@ -15,11 +22,8 @@ from langchain_unstructured import UnstructuredLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
-from utils import get_console_logger, remove_path_from_ref
-from config import (
-    CHUNK_SIZE,
-    CHUNK_OVERLAP,
-)
+from src.rag_agent.utils.utils import get_console_logger, remove_path_from_ref
+import config
 
 logger = get_console_logger()
 
@@ -35,7 +39,11 @@ def get_chunk_header(file_path):
     return f"# Doc. title: {doc_title}\n", doc_name
 
 
-def get_recursive_text_splitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP):
+def get_recursive_text_splitter(chunk_size=None, chunk_overlap=None):
+    if chunk_size is None:
+        chunk_size = config.CHUNK_SIZE
+    if chunk_overlap is None:
+        chunk_overlap = config.CHUNK_OVERLAP
     """
     return a recursive text splitter
     """
@@ -48,7 +56,7 @@ def get_recursive_text_splitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERL
     return text_splitter
 
 
-def load_and_split_pdf(book_path, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP):
+def load_and_split_pdf(book_path, chunk_size=None, chunk_overlap=None):
     """
     Loads and splits a PDF document into chunks using a recursive character text splitter.
 
@@ -85,7 +93,7 @@ def load_and_split_pdf(book_path, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVE
     return docs
 
 
-def load_and_split_docx(file_path, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP):
+def load_and_split_docx(file_path, chunk_size=None, chunk_overlap=None):
     """
     Loads and splits a docx document into chunks using a recursive character text splitter.
 

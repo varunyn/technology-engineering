@@ -40,19 +40,13 @@ from datetime import datetime
 
 # Import configs from the custom-rag-agent
 from config_private import CONNECT_ARGS
-from config import (
-    COMPARTMENT_ID,
-    SERVICE_ENDPOINT,
-    OCI_PROFILE,
-    EMBED_MODEL_ID,
-    EMBED_MODEL_TYPE
-)
+import config
 
 # OCI Configuration
-oci_config = oci.config.from_file(profile_name=OCI_PROFILE)
+oci_config = oci.config.from_file(profile_name=config.OCI_PROFILE)
 generative_ai_inference_client = oci.generative_ai_inference.GenerativeAiInferenceClient(
     config=oci_config,
-    service_endpoint=SERVICE_ENDPOINT,
+    service_endpoint=config.SERVICE_ENDPOINT,
     retry_strategy=oci.retry.NoneRetryStrategy(),
     timeout=(10, 240)
 )
@@ -470,9 +464,9 @@ def populate_from_urls_or_files(urls=None, files=None):
             continue
         
         embed_text_detail.inputs = inputs
-        embed_text_detail.model_id = EMBED_MODEL_ID
-        embed_text_detail.compartment_id = COMPARTMENT_ID
-        embed_text_detail.serving_mode = oci.generative_ai_inference.models.OnDemandServingMode(model_id=EMBED_MODEL_ID)
+        embed_text_detail.model_id = config.EMBED_MODEL_ID
+        embed_text_detail.compartment_id = config.COMPARTMENT_ID
+        embed_text_detail.serving_mode = oci.generative_ai_inference.models.OnDemandServingMode(model_id=config.EMBED_MODEL_ID)
         
         try:
             max_retries = 3
@@ -553,9 +547,9 @@ def populate_from_scraped_data(scraped_data):
             continue
         
         embed_text_detail.inputs = inputs
-        embed_text_detail.model_id = EMBED_MODEL_ID
-        embed_text_detail.compartment_id = COMPARTMENT_ID
-        embed_text_detail.serving_mode = oci.generative_ai_inference.models.OnDemandServingMode(model_id=EMBED_MODEL_ID)
+        embed_text_detail.model_id = config.EMBED_MODEL_ID
+        embed_text_detail.compartment_id = config.COMPARTMENT_ID
+        embed_text_detail.serving_mode = oci.generative_ai_inference.models.OnDemandServingMode(model_id=config.EMBED_MODEL_ID)
         
         try:
             max_retries = 3

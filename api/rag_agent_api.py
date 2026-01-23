@@ -6,15 +6,22 @@ Expose the RAG agent as a REST API using FastAPI
 For now it is not supporting chat_history
 """
 
+import sys
+import os
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 import uuid
 import json
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from rag_agent import create_workflow
-from agent_state import State
-from utils import get_console_logger
-from config import DEBUG, DEFAULT_COLLECTION, LLM_MODEL_ID, EMBED_MODEL_TYPE
+from src.rag_agent import create_workflow, State
+from src.rag_agent.utils.utils import get_console_logger
+import config
 
 MEDIA_TYPE = "application/json"
 
@@ -90,17 +97,17 @@ async def invoke(request: InvokeRequest):
     _thread_id = generate_request_id()
     _config = {
         "configurable": {
-            "model_id": LLM_MODEL_ID,
-            "embed_model_type": EMBED_MODEL_TYPE,
+            "model_id": config.LLM_MODEL_ID,
+            "embed_model_type": config.EMBED_MODEL_TYPE,
             "enable_reranker": True,
             "enable_tracing": False,
-            "collection_name": DEFAULT_COLLECTION,
+            "collection_name": config.DEFAULT_COLLECTION,
             "thread_id": _thread_id,
             "main_language": "same as the question",
         }
     }
 
-    if DEBUG:
+    if config.DEBUG:
         logger.info("Invoked Agent API with config: %s", _config)
 
     try:
