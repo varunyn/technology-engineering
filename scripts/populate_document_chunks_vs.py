@@ -6,10 +6,10 @@ Adapted from create_knowledge_base_enhanced.py to work with DOCUMENT_CHUNKS_VS s
 
 import sys
 import os
+import shutil
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from io import BytesIO
-import tempfile
 import uuid
 
 # Try to import unstructured for document processing
@@ -30,7 +30,6 @@ except ImportError:
     if not UNSTRUCTURED_AVAILABLE:
         print("⚠️  Neither Docling nor unstructured available - file processing will be limited")
 
-import requests
 import oci
 import oracledb
 import json
@@ -50,9 +49,51 @@ generative_ai_inference_client = oci.generative_ai_inference.GenerativeAiInferen
     timeout=(10, 240)
 )
 
-headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 Edg/101.0.1210.47"}
-
 TABLE_NAME = "DOCUMENT_CHUNKS_VS"
+UPLOADED_FILES_DIR = "uploaded_files"
+
+def get_project_root():
+    """Get the project root directory (parent of scripts/)"""
+    script_dir = Path(__file__).parent.absolute()
+    return script_dir.parent
+
+def ensure_uploaded_files_dir():
+    """Ensure the uploaded_files directory exists"""
+    project_root = get_project_root()
+    uploaded_dir = project_root / UPLOADED_FILES_DIR
+    uploaded_dir.mkdir(exist_ok=True)
+    return uploaded_dir
+
+def copy_file_to_uploaded(file_path):
+    """
+    Copy file to uploaded_files directory with a unique name.
+    Returns the relative path to the copied file.
+    """
+    try:
+        uploaded_dir = ensure_uploaded_files_dir()
+        original_path = Path(file_path)
+        
+        # Generate unique filename: original_name_uuid.extension
+        file_stem = original_path.stem
+        file_ext = original_path.suffix
+        unique_id = str(uuid.uuid4())[:8]
+        new_filename = f"{file_stem}_{unique_id}{file_ext}"
+        
+        # Copy file
+        destination = uploaded_dir / new_filename
+        shutil.copy2(file_path, destination)
+        
+        # Return relative path from project root
+        project_root = get_project_root()
+        relative_path = destination.relative_to(project_root)
+        
+        print(f"📋 Copied file to: {relative_path}")
+        return str(relative_path)
+        
+    except Exception as e:
+        print(f"⚠️  Warning: Could not copy file to uploaded_files: {e}")
+        # Fallback to original path
+        return f"file://{file_path}"
 
 def create_db_connection():
     """Create database connection using config_private settings"""
@@ -66,26 +107,16 @@ def clean_text(text):
     
     # Remove common navigation elements
     navigation_patterns = [
-        r'\* \[.*?\]\(.*?\)',  # Markdown links
-        r'\[.*?\]\(.*?\)',     # General links
         r'Skip to main content',
-        r'All Pages',
-        r'Try Free Tier',
-        r'Cloud Adoption Framework',
-        r'Getting Started',
-        r'Oracle Cloud\'s Free Tier',
-        r'Documentation',
-        r'Home',
-        r'Previous',
-        r'Next',
         r'Table of Contents',
         r'Navigation',
         r'Menu',
-        r'Search',
         r'Footer',
         r'Header',
         r'Breadcrumb',
-        r'Pagination'
+        r'Pagination',
+        r'Previous',
+        r'Next'
     ]
     
     for pattern in navigation_patterns:
@@ -148,12 +179,6 @@ def chunk_text_with_oracle_vector_chunks(cursor, text, chunk_size=200, overlap=2
                 LANGUAGE AMERICAN 
                 NORMALIZE ALL)
             WHERE LENGTH(chunk_text) > 50
-            AND chunk_text NOT LIKE '%Skip to main content%'
-            AND chunk_text NOT LIKE '%All Pages%'
-            AND chunk_text NOT LIKE '%Navigation%'
-            AND chunk_text NOT LIKE '%Menu%'
-            AND chunk_text NOT LIKE '%Footer%'
-            AND chunk_text NOT LIKE '%Header%'
         """
         
         cursor.execute(chunk_sql, text=text)
@@ -198,92 +223,16 @@ def fallback_chunking(text):
     
     return chunks
 
-def process_url_content(cursor, url):
-    """Process a single URL and extract content for embedding"""
-    chunks = []
-    
-    try:
-        print(f"🌐 Processing URL: {url}")
-        response = requests.get(url, headers=headers, timeout=30)
-        response.raise_for_status()
-        
-        # Determine content type
-        if url.lower().endswith('.pdf') or response.headers.get('content-type', '').startswith('application/pdf'):
-            if DOCLING_AVAILABLE:
-                try:
-                    print(f"🔬 Using Docling for advanced PDF processing from URL")
-                    converter = DocumentConverter()
-                    result = converter.convert(url)
-                    text_content = result.document.export_to_markdown()
-                    print(f"✅ Docling extracted content: {len(text_content)} characters")
-                except Exception as e:
-                    print(f"⚠️  Docling failed for URL PDF: {e}")
-                    if UNSTRUCTURED_AVAILABLE:
-                        print("Falling back to unstructured")
-                        pdf_file = BytesIO(response.content)
-                        elements = partition_pdf(file=pdf_file)
-                        text_content = '\n\n'.join([elem.text for elem in elements if hasattr(elem, 'text') and elem.text])
-                    else:
-                        raise Exception("No PDF processing library available")
-            elif UNSTRUCTURED_AVAILABLE:
-                pdf_file = BytesIO(response.content)
-                elements = partition_pdf(file=pdf_file)
-                text_content = '\n\n'.join([elem.text for elem in elements if hasattr(elem, 'text') and elem.text])
-            else:
-                raise Exception("No PDF processing library available")
-        else:
-            if DOCLING_AVAILABLE:
-                try:
-                    print(f"🔬 Using Docling for HTML processing from URL")
-                    converter = DocumentConverter()
-                    result = converter.convert(url)
-                    text_content = result.document.export_to_markdown()
-                    print(f"✅ Docling extracted content: {len(text_content)} characters")
-                except Exception as e:
-                    print(f"⚠️  Docling failed for URL HTML: {e}")
-                    if UNSTRUCTURED_AVAILABLE:
-                        print("Falling back to unstructured")
-                        elements = partition_html(url=url, headers=headers, skip_headers_and_footers=True, include_metadata=True)
-                        text_content = '\n\n'.join([elem.text for elem in elements if hasattr(elem, 'text') and elem.text])
-                    else:
-                        raise Exception("No HTML processing library available")
-            elif UNSTRUCTURED_AVAILABLE:
-                elements = partition_html(url=url, headers=headers, skip_headers_and_footers=True, include_metadata=True)
-                text_content = '\n\n'.join([elem.text for elem in elements if hasattr(elem, 'text') and elem.text])
-            else:
-                raise Exception("No HTML processing library available")
-        
-        if not text_content or len(text_content.strip()) < 100:
-            print(f"⚠️  No meaningful content extracted from {url}")
-            return chunks
-        
-        cleaned_text = clean_text(text_content)
-        
-        # Chunk first, then filter by quality (don't check entire document)
-        oracle_chunks = chunk_text_with_oracle_vector_chunks(cursor, cleaned_text)
-        
-        for chunk in oracle_chunks:
-            chunks.append({
-                'content': chunk['content'],
-                'source_url': url,
-                'metadata': {'source_type': 'url', 'url': url, 'chunk_offset': chunk['offset'], 'chunk_length': chunk['length']},
-                'chunk_offset': chunk['offset'],
-                'chunk_length': chunk['length']
-            })
-        
-        print(f"✅ Created {len(chunks)} quality chunks from URL: {url}")
-        
-    except Exception as e:
-        print(f"❌ Error processing URL {url}: {str(e)}")
-    
-    return chunks
-
 def process_file_content(cursor, file_path, use_docling=True):
     """Process a file and extract content for embedding"""
     chunks = []
     
     try:
         print(f"📁 Processing file: {file_path}")
+        
+        # Copy file to uploaded_files directory
+        stored_file_path = copy_file_to_uploaded(file_path)
+        
         file_ext = file_path.lower().split('.')[-1]
         
         if use_docling and DOCLING_AVAILABLE:
@@ -317,7 +266,7 @@ def process_file_content(cursor, file_path, use_docling=True):
                 else:
                     print(f"⚠️  unstructured not available for HTML processing")
                     return chunks
-            elif file_ext == 'txt':
+            elif file_ext in ['txt', 'md', 'markdown']:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     text_content = f.read()
             else:
@@ -333,11 +282,17 @@ def process_file_content(cursor, file_path, use_docling=True):
         # Chunk first, then filter by quality (don't check entire document)
         oracle_chunks = chunk_text_with_oracle_vector_chunks(cursor, cleaned_text)
         
+        original_filename = Path(file_path).name
         for chunk in oracle_chunks:
             chunks.append({
                 'content': chunk['content'],
-                'source_url': f"file://{file_path}",
-                'metadata': {'source_type': 'file', 'file_path': file_path, 'file_name': file_path.split('/')[-1], 'chunk_offset': chunk['offset'], 'chunk_length': chunk['length']},
+                'metadata': {
+                    'source_type': 'file',
+                    'source_url': stored_file_path,
+                    'file_name': original_filename,
+                    'chunk_offset': chunk['offset'],
+                    'chunk_length': chunk['length']
+                },
                 'chunk_offset': chunk['offset'],
                 'chunk_length': chunk['length']
             })
@@ -347,49 +302,6 @@ def process_file_content(cursor, file_path, use_docling=True):
     except Exception as e:
         print(f"❌ Error processing file {file_path}: {str(e)}")
     
-    return chunks
-
-def process_scraped_data_with_oracle_chunks(cursor, scraped_json_data):
-    """Process scraped JSON data using Oracle VECTOR_CHUNKS"""
-    chunks = []
-    
-    if isinstance(scraped_json_data, dict) and 'data' in scraped_json_data:
-        data_items = scraped_json_data['data']
-    elif isinstance(scraped_json_data, list):
-        data_items = scraped_json_data
-    else:
-        print("Unexpected data format")
-        return chunks
-    
-    print(f"Processing {len(data_items)} scraped items with Oracle VECTOR_CHUNKS...")
-    
-    for i, item in enumerate(data_items):
-        if isinstance(item, dict):
-            markdown_content = item.get('markdown', '')
-            metadata = item.get('metadata', {})
-            source_url = metadata.get('url', '')
-            
-            if markdown_content:
-                oracle_chunks = chunk_text_with_oracle_vector_chunks(cursor, markdown_content)
-                
-                for chunk in oracle_chunks:
-                    chunk_metadata = metadata.copy()
-                    chunk_metadata['chunk_offset'] = chunk['offset']
-                    chunk_metadata['chunk_length'] = chunk['length']
-                    
-                    chunks.append({
-                        'content': chunk['content'],
-                        'source_url': source_url,
-                        'metadata': chunk_metadata,
-                        'chunk_offset': chunk['offset'],
-                        'chunk_length': chunk['length']
-                    })
-                
-                print(f"✅ Item {i+1}: {len(oracle_chunks)} quality chunks created")
-            else:
-                print(f"⚠️  Item {i+1}: No markdown content")
-    
-    print(f"✅ Processed {len(chunks)} total chunks using Oracle VECTOR_CHUNKS")
     return chunks
 
 def insert_data(cursor, chunk_id, text, embedding, metadata):
@@ -414,20 +326,14 @@ def insert_data(cursor, chunk_id, text, embedding, metadata):
         print(f"Error inserting data: {str(e)}")
         raise
 
-def populate_from_urls_or_files(urls=None, files=None):
-    """Populate DOCUMENT_CHUNKS_VS from URLs or files"""
+def populate_from_files(files):
+    """Populate DOCUMENT_CHUNKS_VS from files"""
     connection = create_db_connection()
     cursor = connection.cursor()
     
     print(f"Populating {TABLE_NAME} table...")
     
     all_chunks = []
-    
-    if urls:
-        print(f"\n🌐 Processing {len(urls)} URL(s)...")
-        for url in urls:
-            url_chunks = process_url_content(cursor, url)
-            all_chunks.extend(url_chunks)
     
     if files:
         print(f"\n📁 Processing {len(files)} file(s)...")
@@ -510,136 +416,21 @@ def populate_from_urls_or_files(urls=None, files=None):
     connection.close()
     print(f"\n✅ Successfully populated {TABLE_NAME} with {inserted_count} embeddings")
 
-def populate_from_scraped_data(scraped_data):
-    """Populate DOCUMENT_CHUNKS_VS from scraped JSON data"""
-    connection = create_db_connection()
-    cursor = connection.cursor()
-    
-    print(f"Populating {TABLE_NAME} table from scraped data...")
-    
-    processed_chunks = process_scraped_data_with_oracle_chunks(cursor, scraped_data)
-    
-    if not processed_chunks:
-        print("No quality chunks found")
-        cursor.close()
-        connection.close()
-        return
-    
-    print(f"Processing {len(processed_chunks)} chunks for embedding...")
-    
-    start = 0
-    inserted_count = 0
-    
-    while start < len(processed_chunks):
-        embed_text_detail = oci.generative_ai_inference.models.EmbedTextDetails()
-        content_subsets = processed_chunks[start:start+96]
-        inputs = []
-        metadata_list = []
-        
-        for subset in content_subsets:
-            if subset and 'content' in subset:
-                inputs.append(subset['content'])
-                metadata_list.append(subset.get('metadata', {}))
-        
-        if not inputs:
-            start += 96
-            continue
-        
-        embed_text_detail.inputs = inputs
-        embed_text_detail.model_id = config.EMBED_MODEL_ID
-        embed_text_detail.compartment_id = config.COMPARTMENT_ID
-        embed_text_detail.serving_mode = oci.generative_ai_inference.models.OnDemandServingMode(model_id=config.EMBED_MODEL_ID)
-        
-        try:
-            max_retries = 3
-            retry_count = 0
-            
-            while retry_count < max_retries:
-                try:
-                    response = generative_ai_inference_client.embed_text(embed_text_detail)
-                    embeddings = response.data.embeddings
-                    break
-                except Exception as e:
-                    retry_count += 1
-                    if "high load" in str(e).lower() and retry_count < max_retries:
-                        print(f"OCI service experiencing high load, retrying in {retry_count * 2} seconds...")
-                        import time
-                        time.sleep(retry_count * 2)
-                    else:
-                        raise e
-            
-            batch_size = min(len(embeddings), len(inputs))
-            
-            for i in range(batch_size):
-                try:
-                    chunk_id = str(uuid.uuid4())[:64]  # VARCHAR2(64) compatible
-                    insert_data(cursor, chunk_id, inputs[i], list(embeddings[i]), metadata_list[i])
-                    inserted_count += 1
-                except Exception as e:
-                    print(f"Error inserting item {i}: {str(e)}")
-                    continue
-            
-            connection.commit()
-                    
-        except Exception as e:
-            print(f"Error while creating embeddings: {e}")
-            start += 96
-            continue
-        
-        start += 96
-        print(f"Processed batch: {start}/{len(processed_chunks)} items ({inserted_count} inserted)")
-    
-    cursor.close()
-    connection.close()
-    print(f"\n✅ Successfully populated {TABLE_NAME} with {inserted_count} embeddings")
-
 if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser(
-        description='Populate DOCUMENT_CHUNKS_VS table from URLs, Files, or Scraped Data',
+        description='Populate DOCUMENT_CHUNKS_VS table from files',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Process URLs
-  python populate_document_chunks_vs.py --urls "https://example.com" "https://docs.oracle.com"
-  
   # Process files
-  python populate_document_chunks_vs.py --files "document.pdf" "page.html"
-  
-  # Process both URLs and files
-  python populate_document_chunks_vs.py --urls "https://example.com" --files "doc.pdf"
-  
-  # Use scraped data from API
-  python populate_document_chunks_vs.py --api-url "http://192.168.68.93:3002/v1/crawl/6b23ec44-dba2-4d1d-ad6f-bacdaf583bf1"
-  
-  # Use JSON file
-  python populate_document_chunks_vs.py --json-file "scraped_data.json"
+  python populate_document_chunks_vs.py --files "document.pdf" "page.html" "text.txt" "readme.md"
         """
     )
     
-    parser.add_argument('--urls', nargs='+', help='URL(s) to scrape and process')
-    parser.add_argument('--files', nargs='+', help='File path(s) to process (PDF, HTML, TXT)')
-    parser.add_argument('--api-url', help='API endpoint to fetch scraped JSON data')
-    parser.add_argument('--json-file', help='Path to JSON file with scraped data')
+    parser.add_argument('--files', nargs='+', required=True, help='File path(s) to process (PDF, HTML, TXT, MD)')
     
     args = parser.parse_args()
     
-    if args.urls or args.files:
-        populate_from_urls_or_files(urls=args.urls, files=args.files)
-    elif args.json_file:
-        with open(args.json_file, 'r') as f:
-            scraped_data = json.load(f)
-        populate_from_scraped_data(scraped_data)
-    elif args.api_url:
-        try:
-            response = requests.get(args.api_url)
-            scraped_data = response.json()
-            populate_from_scraped_data(scraped_data)
-        except Exception as e:
-            print(f"Error fetching scraped data: {e}")
-            sys.exit(1)
-    else:
-        print("Please specify --urls, --files, --api-url, or --json-file")
-        parser.print_help()
-        sys.exit(1)
+    populate_from_files(files=args.files)

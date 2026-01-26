@@ -16,7 +16,7 @@ import streamlit as st
 from mcp_servers.mcp_servers_config import MCP_SERVERS_CONFIG
 
 # this one contains the backend and the test code only for console
-from scripts.llm_with_mcp import AgentWithMCP, default_jwt_supplier
+from src.rag_agent.infrastructure.llm_with_mcp import AgentWithMCP, default_jwt_supplier
 from src.rag_agent.utils.utils import get_console_logger
 
 logger = get_console_logger()

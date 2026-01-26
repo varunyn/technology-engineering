@@ -45,27 +45,21 @@ You can modify `COLLECTION_LIST` in `config.py` to match your actual table names
 
 ### 4. Loading Data into Collections
 
-The app includes utilities to load documents:
+Use the `populate_document_chunks_vs.py` script to load documents into your collection:
 
-#### Available Functions (in `chunk_index_utils.py`):
-- `load_and_split_pdf(book_path)` - Loads and chunks PDF files
-- `load_and_split_docx(file_path)` - Loads and chunks DOCX files
-
-#### Adding Documents to a Collection:
-
-You can use the `SemanticSearch.add_documents()` method:
-
-```python
-from vector_search import SemanticSearch
-from chunk_index_utils import load_and_split_pdf
-
-# Load and split a PDF
-docs = load_and_split_pdf("path/to/document.pdf")
-
-# Add to collection
-search = SemanticSearch()
-search.add_documents(docs, collection_name="BOOKS")
+```bash
+# Process files and populate the database
+python scripts/populate_document_chunks_vs.py --files "document.pdf" "notes.txt" "readme.md"
 ```
+
+This script:
+- Extracts text from files (PDF, HTML, TXT, MD)
+- Uses Oracle's `VECTOR_CHUNKS` function for intelligent chunking
+- Generates embeddings using OCI Generative AI
+- Stores chunks in `DOCUMENT_CHUNKS_VS` table
+- Archives files to `uploaded_files/` directory
+
+See `docs/DOCUMENT-POPULATION.md` for detailed usage.
 
 ### 5. What the App Expects
 
@@ -89,16 +83,10 @@ Based on your `config_private.py`, you have:
 ## Next Steps
 
 1. **Verify your database connection** - Test with `db_utils.list_collections()`
-2. **Check if BOOKS table exists** - The app expects at least one collection
-3. **Load your documents** - If BOOKS is empty, you need to load documents:
-   ```python
-   # Example script to load documents
-   from vector_search import SemanticSearch
-   from chunk_index_utils import load_and_split_pdf
-   
-   search = SemanticSearch()
-   docs = load_and_split_pdf("your_document.pdf")
-   search.add_documents(docs, "BOOKS")
+2. **Check if collection exists** - The app expects at least one collection
+3. **Load your documents** - Use the population script:
+   ```bash
+   python scripts/populate_document_chunks_vs.py --files "your_document.pdf" "notes.txt"
    ```
 
 ## Troubleshooting

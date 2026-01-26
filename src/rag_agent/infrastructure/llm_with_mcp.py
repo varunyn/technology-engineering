@@ -1,5 +1,5 @@
 """
-Test LLM and MCP
+LLM and MCP Integration
 Based on fastmcp library.
 This one provide also support for security in MCP calls, using JWT token.
 
@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 
 # Add project root to Python path
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import json

@@ -1,22 +1,12 @@
 [project]
 name = "custom-rag-agent"
-version = "0.1.0"
 description = "Custom RAG Agent with LangGraph, Oracle 23AI Vector Store, and MCP integration"
 readme = "docs/README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
 authors = [
     {name = "Varun Yadav"}
 ]
 keywords = ["rag", "langgraph", "oracle", "vector-search", "mcp", "llm"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-]
 
 # Core Framework & Agent
 dependencies = [
@@ -80,13 +70,8 @@ dev = [
 # Example: rag-agent = "src.rag_agent.rag_agent:main"
 
 [tool.uv]
-# uv-specific settings
 package = false  # This is an application, not a package to be installed
-dev-dependencies = []
 
-[tool.uv.sources]
-# Custom package sources (if needed)
-# Example: my-package = { git = "https://github.com/user/repo.git" }
 
 [tool.black]
 line-length = 100
