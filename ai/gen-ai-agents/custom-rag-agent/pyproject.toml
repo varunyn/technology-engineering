@@ -1,0 +1,90 @@
+[project]
+name = "custom-rag-agent"
+description = "Custom RAG Agent with LangGraph, Oracle 23AI Vector Store, and MCP integration"
+readme = "docs/README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Varun Yadav"}
+]
+keywords = ["rag", "langgraph", "oracle", "vector-search", "mcp", "llm"]
+
+# Core Framework & Agent
+dependencies = [
+    "langchain>=0.3.26",
+    "langchain-core>=0.3.80",
+    "langchain-community>=0.3.27",
+    "langgraph>=0.5.0",
+    "langgraph-checkpoint>=3.0.0",
+    "typing-extensions>=4.15.0",
+    # Web UI
+    "streamlit>=1.53.0",
+    # Database & Vector Store
+    "oracledb>=3.0.0",
+    # Oracle Cloud Infrastructure
+    "oci>=2.154.3",
+    # MCP (Model Context Protocol) Server
+    "fastapi>=0.115.14",
+    "fastmcp>=2.14.0",
+    "mcp>=1.17.0,<2.0.0",
+    "starlette>=0.40.0",
+    "uvicorn>=0.35.0",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.8.1",
+    # Document Processing & Text Splitting
+    "langchain-text-splitters>=1.1.0",
+    "langchain-unstructured>=1.0.0",
+    "unstructured>=0.18.2",
+    "unstructured-client>=0.37.2",
+    # HTTP & Network
+    "requests>=2.32.3",
+    "httpx>=0.28.1",
+    "httpx-sse>=0.4.0",
+    "httpcore>=1.0.7",
+    # Authentication & Security
+    "PyJWT>=2.10.1",
+    "cryptography>=44.0.2",
+    # Observability (Optional - for APM integration)
+    "py-zipkin>=1.2.8",
+    # Data Processing & Search
+    "numpy>=2.2.3",
+    "rank-bm25>=0.2.2",
+    # Utilities
+    "python-dateutil>=2.9.0.post0",
+    "PyYAML>=6.0.2",
+    "python-dotenv>=1.1.1",
+]
+
+[dependency-groups]
+# Group dependencies for different use cases
+# Usage: uv sync --group dev
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.0.0",
+    "ruff>=0.5.0",
+    "mypy>=1.8.0",
+]
+
+[project.scripts]
+# Entry points for command-line tools (if needed)
+# Example: rag-agent = "src.rag_agent.rag_agent:main"
+
+[tool.uv]
+package = false  # This is an application, not a package to be installed
+
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
