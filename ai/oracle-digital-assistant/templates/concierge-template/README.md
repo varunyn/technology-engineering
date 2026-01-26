@@ -2,14 +2,11 @@
  
 The Concierge Template is a skill for quickly setting up a Knowledge bot.
 
-Reviewed: 21.01.2026
+Reviewed: 31.10.2025
 
-# When to use this asset?
- 
-To implement answer intents with carousel and user feedback
- 
-# How to use this asset?
+Concierge Template WebSDK
 
+Setup:
   To use this web-sdk for your bot you minimally need to do the following:
     1. In the scripts/concierge.js file:
         line 3: Enter the URI of your ODA instance in the format shown
@@ -41,7 +38,7 @@ In your freemarker expression you can use them like profile.properties.value.com
  
 # License
  
-Copyright (c) 2026 Oracle and/or its affiliates.
+Copyright (c) 2025 Oracle and/or its affiliates.
  
 Licensed under the Universal Permissive License (UPL), Version 1.0.
  

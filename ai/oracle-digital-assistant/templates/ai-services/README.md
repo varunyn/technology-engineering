@@ -2,20 +2,16 @@
  
 This template is a skill for quickly setting up using AI Vision, AI Document Understanding, AI Language and AI speech integration from ODA
 
-Reviewed: 21.01.2026
+Reviewed: 31.10.2025
 
-# When to use theis asset?
- 
-If you need AI Vision, AI Document Understanding, AI Language and AI speech integration from ODA
- 
-# How to use this asset?
+Setup:
   Import the mdAI_services skill in ODA
   For each of the services a flow is defined to connect to one of the AI Services
   Make sure you change connection to your AI Service instances
 
 # License
  
-Copyright (c) 2026 Oracle and/or its affiliates.
+Copyright (c) 2025 Oracle and/or its affiliates.
  
 Licensed under the Universal Permissive License (UPL), Version 1.0.
  

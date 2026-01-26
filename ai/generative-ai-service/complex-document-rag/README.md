@@ -4,8 +4,6 @@ An enterprise-grade Retrieval-Augmented Generation (RAG) system for generating c
 
 Reviewed date: 03.11.2025
 
----
-# When to use this asset?
 ## Features
 
 - **Multi-Document Processing**: Ingest and process PDF and XLSX documents
@@ -17,8 +15,6 @@ Reviewed date: 03.11.2025
 - **Multi-Language Support**: Generate reports in English, Arabic, Spanish, and French
 - **Visual Analytics**: Automatic chart and table generation from data
 ![Application screenshot](files/images/screenshot1.png)
----
-# How to use this asset?
 ## Prerequisites
 
 - Python 3.11+
@@ -72,7 +68,6 @@ DEFAULT_EMBEDDING_MODEL=cohere-embed-multilingual-v3.0
 DEFAULT_LLM_MODEL=grok-3
 EOF
 ```
----
 
 ## Quick Start
 
@@ -229,18 +224,38 @@ rag_system = RAGSystem(
 response = rag_system.process_query("Your query here")
 print(response["answer"])
 ```
----
 
-# Docs & References
+## Contributing
 
-📘 [OCI Generative AI Overview](https://docs.oracle.com/en-us/iaas/Content/generative-ai/home.htm)
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `python -m pytest tests/`
+5. Submit a pull request
 
----
+## License
 
-# License
+[Your License Here]
 
-Copyright (c) 2026 Oracle and/or its affiliates.
+## Support
+
+For issues and questions:
+- Check the logs in `logs/app.log`
+- Review the troubleshooting section
+- Open an issue on GitHub
+
+## Acknowledgments
+
+- Oracle Cloud Infrastructure for Generative AI services
+- Gradio for the web interface
+- ChromaDB for vector storage
+- The open-source community
+
+## License
+Copyright (c) 2025 Oracle and/or its affiliates.
+
 Licensed under the Universal Permissive License (UPL), Version 1.0.
 
-See [LICENSE](https://github.com/oracle-devrel/technology-engineering/blob/main/LICENSE.txt) for more details.
+See [LICENSE](LICENSE.txt) for more details.
 
+ORACLE AND ITS AFFILIATES DO NOT PROVIDE ANY WARRANTY WHATSOEVER, EXPRESS OR IMPLIED, FOR ANY SOFTWARE, MATERIAL OR CONTENT OF ANY KIND CONTAINED OR PRODUCED WITHIN THIS REPOSITORY, AND IN PARTICULAR SPECIFICALLY DISCLAIM ANY AND ALL IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE.  FURTHERMORE, ORACLE AND ITS AFFILIATES DO NOT REPRESENT THAT ANY CUSTOMARY SECURITY REVIEW HAS BEEN PERFORMED WITH RESPECT TO ANY SOFTWARE, MATERIAL OR CONTENT CONTAINED OR PRODUCED WITHIN THIS REPOSITORY. IN ADDITION, AND WITHOUT LIMITING THE FOREGOING, THIRD PARTIES MAY HAVE POSTED SOFTWARE, MATERIAL OR CONTENT TO THIS REPOSITORY WITHOUT ANY REVIEW. USE AT YOUR OWN RISK. 

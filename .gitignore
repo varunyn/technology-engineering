@@ -8,6 +8,7 @@ app-dev/app-integration-and-automation/oracle-integration-cloud/01-oic-connectiv
 # Local .terraform directories
 **/.terraform/*
 
+.config
 
 # Crash log files
 crash.log
@@ -47,4 +48,6 @@ __pycache__
 
 desktop.ini
 
-app-dev/app-integration-and-automation/README.pdf
+
+# Uploaded files directory
+**/uploaded_files/

@@ -1,6 +1,6 @@
 # Exadata Cloud@Customer Networking
 
-Network connection related ExaDB-C@C information. 
+Reviewed: 16.09.2025
 
 # Useful Links
 
@@ -11,8 +11,6 @@ Network connection related ExaDB-C@C information.
 - [Exadata Cloud API/CLI Alignment Matrix (Doc ID 2768569.1)](https://support.oracle.com/epmos/faces/DocumentDisplay?id=2768569.1)
 
 - [Using Data Guard](https://docs.oracle.com/en/engineered-systems/exadata-cloud-at-customer/ecccm/ecc-using-data-guard.html)
-
-Reviewed: 01/22/26
 
 # License
 

@@ -5,12 +5,10 @@ A Streamlit-based multimodal application that analyzes **vehicle images or video
 This tool allows insurance professionals and adjusters to upload accident images or a short video clip, and receive a concise, expert-style report summarizing vehicle condition, visible damages, and safety concerns — all generated through a single multimodal LLM call.
 
 **Author:** Ali Ottoman  
-
-**Reviewed date:** 19.01.2026
+**Reviewed date:** 13.10.2025
 
 ---
 
-# When to use this asset?
 ## 🔧 Features
 
 ### Unified Image & Video Analysis
@@ -65,7 +63,6 @@ This tool allows insurance professionals and adjusters to upload accident images
 
 ---
 
-# How to use this asset?
 ## ⚙️ Setup & Installation
 
 ### 1. Clone the Repository
@@ -99,7 +96,7 @@ streamlit run motor-insurance-chatbot.py
 
 ---
 
-## 📝 Get it running
+## 📝 How to Use
 
 1. **Upload your files**  
    → Images (`.jpg`, `.png`) or one video (`.mp4`, `.avi`, `.mov`)  
@@ -154,15 +151,13 @@ streamlit run motor-insurance-chatbot.py
 
 ---
 
-# Docs & References
+## 🔗 Docs & References
 
 📘 [OCI Generative AI Overview](https://docs.oracle.com/en-us/iaas/Content/generative-ai/home.htm)
 
 ---
 
-# License
+## 📄 License
 
-Copyright (c) 2026 Oracle and/or its affiliates.
-Licensed under the Universal Permissive License (UPL), Version 1.0.
-
-See [LICENSE](https://github.com/oracle-devrel/technology-engineering/blob/main/LICENSE.txt) for more details.
+Copyright (c) 2025 Oracle and/or its affiliates.  
+**MIT License** — see `LICENSE` for details.

@@ -1,87 +1,149 @@
-# Liability Determination Report Generator — OCI GenAI
+# 🚗 Liability Determination Report Generator — OCI GenAI 
 
-*A Streamlit-based multimodal application that extracts driver, vehicle, insurance, and damage assessment details from uploaded documents and accident photos using Oracle Generative AI (Llama 4 Maverick). The asset automates end‑to‑end extraction for insurance reporting, producing structured Arabic JSON output, a professionally formatted PDF report, car damage visualisations, and full Arabic RTL rendering.*
+A Streamlit-based multimodal application that extracts **driver, vehicle, insurance**, and **damage assessment** details from uploaded documents and accident photos using **Oracle Generative AI (Llama 4 Maverick)**.
 
-Author: Ali Ottoman
+This asset automates end‑to‑end extraction for insurance reporting, producing:
+- Structured Arabic JSON output  
+- A professionally formatted **PDF report**  
+- Car damage visualisations  
+- Arabic text rendering and right‑to‑left formatting  
 
-Reviewed: 19.01.2026
+**Author:** Ali Ottoman  
+**Reviewed date:** 11.12.2025
 
-# When to use this asset?
+---
 
-*This asset is used by insurance and digital transformation teams when automated, Arabic-first accident and liability reporting is required.*
+## 🔧 Features
 
-### Who
-- Motor insurance teams handling accident and liability reports  
-- Claims adjusters requiring fast, structured damage assessments  
-- Digital transformation teams modernising manual accident workflows  
+### Full Document Extraction Pipeline
+- Upload for **each party**:
+  - Driving license  
+  - Vehicle registration  
+  - Insurance documents  
+  - Damage photos (multiple supported)  
+- Automatic PDF → image conversion  
+- Enforcement of **Arabic‑only** values (names transliterated, no English)
 
-### When
-- Accident cases contain mixed documents and photos  
-- Arabic-only extraction and RTL rendering are mandatory  
-- Consistent, schema-validated JSON and PDF outputs are required  
-- Reducing manual data entry and report preparation time is a priority  
+### Maverick‑Powered Extraction
+- One LLM call **per party**, with strict JSON schema:
+  - **Driver info:** name, nationality, ID, expiry, issue date  
+  - **Vehicle info:** owner, model, year/color, plate  
+  - **Insurance info:** company, type, policy, dates  
+  - **Damage:** affected regions + summary
 
-# How to use this asset?
+### Streamlit Front-End
+- Wide layout, image preview, inline debugging  
+- Automatic Arabic font embedding  
+- RTL display in all result sections  
 
-*The asset is deployed as a Streamlit application and guides users through uploading accident documents and images, extracting structured data, and generating reports.*
+### PDF Report Generation
+- Clean A4 output showing:
+  - Party 1 + Party 2 driver/vehicle/insurance info  
+  - Arabic values rendered using embedded font  
+  - Professional layout  
+- First-page preview inside the app  
 
-### Application Workflow
-1. Upload all required files for Party 1 and Party 2:
-   - Driving license  
-   - Vehicle registration  
-   - Insurance documents  
-   - Damage photos (multiple supported)  
-2. Click **Generate report**
-3. Review:
-   - Extracted structured Arabic JSON  
-   - Damage visualisation map  
-   - Downloadable professionally formatted PDF report  
-
-### Key Capabilities
-- Automatic PDF-to-image conversion  
-- One multimodal LLM call per party with strict JSON schema:
-  - Driver information  
-  - Vehicle information  
-  - Insurance details  
-  - Damage regions and summary  
-- Arabic-only value enforcement with proper font embedding  
-- RTL rendering across UI, JSON, and PDF outputs  
-
-### Damage Visualisation
-- Highlights impacted vehicle areas:
+### Damage Map Visualisation
+- Highlights impacted areas:
   - front / rear / left / right  
   - front-left / front-right  
   - rear-left / rear-right  
 
-### File Structure
+---
+
+## 🗂️ Files & Structure
+
 ```
 .
-├── car_accident_report_generator.py
-├── config.py
+├── car_accident_report_generator.py        # Main Streamlit app
+├── config.py                       # Compartment ID + configs
 ├── assets/
-│   └── car_top_view.png
+│   └── car_top_view.png            # Background for damage map
 ├── fonts/
-│   └── NotoNaskhArabic-Regular.ttf
-├── requirements.txt
-└── README.md
+│   └── NotoNaskhArabic-Regular.ttf # Embedded Arabic font
+├── requirements.txt                # Dependencies
+└── README.md                       # You are reading it
 ```
 
-### Setup
+---
+
+## ⚙️ Setup & Installation
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-repo/car-accident-report-generator.git
+cd <your-file>
+```
+
+### 2. Install Requirements
 ```bash
 pip install -r requirements.txt
+```
+
+### 3. Configure OCI Credentials
+Create or edit:
+
+```python
+# config.py
+COMPARTMENT_ID = "<your_compartment_ocid>"
+```
+
+Ensure `~/.oci/config` is correctly configured with your **tenancy**, **user**, **API key**, and **region**.
+
+---
+
+## 🚀 Run the App
+```bash
 streamlit run car_accident_report_generator.py
 ```
 
-Ensure OCI credentials are configured correctly and the compartment OCID is set in `config.py`.
+---
 
-# Useful Links (Optional)
+## 📝 How to Use
 
-- OCI Generative AI Documentation  
-  - https://docs.oracle.com/en-us/iaas/Content/generative-ai/home.htm  
+1. Upload all required files for **Party 1** and **Party 2**  
+2. (Optional) Upload any number of damage photos  
+3. Click **Generate report**  
+4. View:
+   - Extracted JSON  
+   - Damage visualisation  
+   - Downloadable PDF report  
 
-# License
+---
 
-Copyright (c) 2026 Oracle and/or its affiliates.  
-Licensed under the Universal Permissive License (UPL), Version 1.0.
+## 🧠 Example Output (JSON)
 
-See [LICENSE](https://github.com/oracle-devrel/technology-engineering/blob/main/LICENSE.txt) for more details.
+```json
+{
+  "party_1": {
+    "driver": { "name": "عبد الله", "nationality": "سعودي", ... },
+    "vehicle": { "owner_name": "محمد", "plate_no": "أ ب ج ١٢٣٤" },
+    "insurance": { "company_name": "التعاونية", "policy_no": "123456789" }
+  },
+  "damage": {
+    "party_1": {
+      "primary_areas": ["rear-left", "rear"],
+      "damage_summary": "أضرار متوسطة في الجزء الخلفي"
+    }
+  }
+}
+```
+
+---
+
+## 🔧 OCI Services Used
+
+- **Generative AI Service (Llama 4 Maverick)**  
+  Multimodal image reasoning + structured extraction  
+- **Object Storage** (optional for extension)  
+- **Streamlit** UI  
+
+---
+
+## 📄 License
+MIT License — free to use and modify.
+
+---
+
+## 🔗 Docs & References
+- OCI Generative AI: https://docs.oracle.com/en-us/iaas/Content/generative-ai/home.htm

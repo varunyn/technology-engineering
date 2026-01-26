@@ -1,5 +1,7 @@
 # Exadata Cloud@Customer Public references
 
+Reviewed: 06.08.2024
+
 - [Advania, Infromation Technology, Sweden](https://github.com/oracle-devrel/technology-engineering/tree/main/data-platform/exadata-cloud-at-customer/exacc-value/exacc-references/assets/Adviana-Island-ExaDBCC.pdf)
 
 - [Banque Internationale A Luxemburg (BIL), Financial Services, Luxemburg](https://github.com/oracle-devrel/technology-engineering/tree/main/data-platform/exadata-cloud-at-customer/exacc-value/exacc-references/assets/BIL-ExaDBCC.pdf)
@@ -13,8 +15,6 @@
 - [HUG, Healthcare, Switzerland](https://github.com/oracle-devrel/technology-engineering/tree/main/data-platform/exadata-cloud-at-customer/exacc-value/exacc-references/assets/HUG-ExaDBCC.pdf)
 
 - [HUS, Healthcare, Finland](https://github.com/oracle-devrel/technology-engineering/tree/main/data-platform/exadata-cloud-at-customer/exacc-value/exacc-references/assets/HUS-yhtyma-ExaDBCC.pdf)
-
-Reviewed: 01/22/26
 
 # License
 
